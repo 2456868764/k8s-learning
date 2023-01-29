@@ -4,9 +4,9 @@
 
 ### 1.docker基础
 * Docker基础
-* Linux Namespace
-* Linux CGroup
-* Docker文件系统
+* Namespace
+* CGroup
+* 镜像文件
 * Dockerfile
 
 ### 2.k8s安装
@@ -24,7 +24,7 @@
 ### 4.k8s基本对象
 * Deployment, ReplicatSet, Pod, StatefulSet, DamonSet
 * Service
-* Configmap, Secret
+* Configmap, Secret,Service Account
 
 ### 5.k8s安全
 * 认证和授权
