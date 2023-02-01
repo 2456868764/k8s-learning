@@ -27,8 +27,9 @@
 * Configmap, Secret,Service Account
 
 ### 5.k8s安全
-* 认证和授权
 * RABC
+* NetworkPolicy
+* SecurtiyContext
 
 ### 6.Pod生命周期
 * kubelet
