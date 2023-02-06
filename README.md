@@ -2,12 +2,13 @@
 
 ## 目录
 
-### 1.docker基础
-* Docker基础
-* Namespace
-* CGroup
+### 1.容器技术深度剖析
+* 容器技术基础
 * 镜像文件
 * Dockerfile
+* Namespace
+* CGroup
+* Runc
 
 ### 2.k8s安装
 
@@ -25,6 +26,8 @@
 * Deployment, ReplicatSet, Pod, StatefulSet, DamonSet
 * Service
 * Configmap, Secret,Service Account
+
+### 存储架构原理
 
 ### 5.k8s安全
 * RABC
