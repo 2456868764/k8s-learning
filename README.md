@@ -8,7 +8,8 @@
 * Dockerfile
 * Namespace
 * CGroup
-* Runc
+* 网络
+* containerd & Runc
 
 ### 2.k8s安装
 
