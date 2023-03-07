@@ -28,10 +28,9 @@
 * Service
 * Configmap, Secret,Service Account
 
-### 存储架构原理
 
 ### 5.k8s安全
-* RABC
+* RBAC
 * NetworkPolicy
 * SecurtiyContext
 
