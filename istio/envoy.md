@@ -561,7 +561,7 @@ Envoy 进程中运行着一系列 Inbound/Outbound 监听器（Listener），Inb
 ![img.png](images/envoy_http.png)
 
 
-5. cluster network Filter
+5、cluster network Filter
 
 借助cluster network Filter，envoy可以实现任意协议之间的流量转换。 以HTTP和Dubbo为例：
 * 当cluster A指向一个Dubbo服务时，可以为该cluster配置一个 HTTP2Dubbo的 cluster network Filter。之后，可以将HTTP请求发送给cluster A。
@@ -577,3 +577,9 @@ Envoy 进程中运行着一系列 Inbound/Outbound 监听器（Listener），Inb
 
 ![img.png](images/envoy_filter2.png)
 
+
+## Envoy连接处理
+
+Envoy通过侦听器监听套接字并接收客户端请求，而Envoy的所有工作线程会同时共同监听用户配置的所有套接字，对于某次连接请求，由内核负责将其派发至某个具体的工作线程处理; 随后，相关的工作线程基于特定的处理逻辑分别由相关组件依次完成连接管理。
+
+![img.png](images/envoy_connection.png)
