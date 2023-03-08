@@ -260,6 +260,75 @@ Envoy 内部对请求的处理流程其实跟我们上面脑补的流程大致�
 
 ### 启动 Envoy
 
+envoy_basic_front_proxy.yaml 配置文件如下：
+
+```yaml
+admin:
+  address:
+    socket_address: { address: 127.0.0.1, port_value: 8081 }
+
+static_resources:
+  listeners:
+    - name: listener_0
+      address:
+        socket_address: { address: 127.0.0.1, port_value: 8080 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: http
+                codec_type: AUTO
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: backend_baidu
+                      domains: ["baidu.com"]
+                      routes:
+                      - match:
+                          prefix: "/"
+                        route:
+                          cluster: baidu
+                    - name: backend_httpbin
+                      domains: ["httpbin.org"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: httpbin
+                http_filters:
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+    - name: baidu
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: baidu
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: www.baidu.com
+                      port_value: 80
+    - name: httpbin
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: httpbin
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: httpbin.org
+                      port_value: 80
+```
+
 ```shell
 envoy -c ./envoy_basic_front_proxy.yaml
 
@@ -385,7 +454,6 @@ Envoy 的整体配置结构如下：
 - overload_manager : 过载过滤器。
 - header_prefix : Header 字段前缀修改。例如，如果将该字段设为 X-Foo，那么 Header 中的 x-envoy-retry-on 将被会变成 x-foo-retry-on。
 - use_tcp_for_dns_lookups : 强制使用 TCP 查询 DNS。可以在 Cluster 的配置中覆盖此配置。
-
 
 
 
