@@ -152,117 +152,6 @@ XDS 以及各个资源之间的关系下图所示。
 envoy_basic_front.yaml 文件内容如下：
 
 ```yaml
-static_resources:
-  listeners:
-  - address:
-      # Tells Envoy to listen on 0.0.0.0:15001
-      socket_address:
-        address: 0.0.0.0
-        port_value: 15001
-    filter_chains:
-        # Any requests received on this address are sent through this chain of filters
-        - filters:
-            # If the request is HTTP it will pass through this HTTP filter
-            - name: envoy.filters.network.http_connection_manager
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                codec_type: auto
-                stat_prefix: http
-              access_log:
-                name: envoy.access_loggers.file
-                typed_config:
-                  "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
-                  path: /dev/stdout
-                route_config:
-                  name: search_route
-                  virtual_hosts:
-                    - name: backend
-                      domains:
-                        - "*"
-                      routes:
-                        # Match on host (:authority in HTTP2) headers
-                        - match:
-                            prefix: "/"
-                            headers:
-                              - name: ":authority"
-                                exact_match: "baidu.com"
-                          route:
-                            # Send request to an endpoint in the Baidu cluster
-                            cluster: baidu
-                            host_rewrite_literal: www.baidu.com
-                        - match:
-                            prefix: "/"
-                            headers:
-                              - name: ":authority"
-                                exact_match: "httpbin.org"
-                          route:
-                            # Send request to an endpoint in the Httpbin cluster
-                            cluster: httpbin
-                            host_rewrite_literal: httpbin.org
-                http_filters:
-                  - name: envoy.filters.http.router
-  clusters:
-    - name: baidu
-      connect_timeout: 1s
-      type: logical_dns
-      dns_lookup_family: V4_ONLY
-      lb_policy: round_robin
-      load_assignment:
-        cluster_name: baidu
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: www.baidu.com
-                      port_value: 80
-    - name: httpbin
-      connect_timeout: 1s
-      type: logical_dns
-      dns_lookup_family: V4_ONLY
-      lb_policy: round_robin
-      load_assignment:
-        cluster_name: bing
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: httpbin.org
-                      port_value: 80
-admin:
-  access_log_path: "/dev/stdout"
-  address:
-    socket_address:
-      address: 0.0.0.0
-      port_value: 15000
-
-```
-
-可能会觉得它的配置太复杂了， 看 Envoy 是如何组织配置信息的，先简单解释一下其中的关键字段。
-
-- listener : Envoy 的监听地址，就是真正干活的。Envoy 会暴露一个或多个 Listener 来监听客户端的请求。
-- filter : 过滤器。在 Envoy 中指的是一些“可插拔”和可组合的逻辑处理层，是 Envoy 核心逻辑处理单元。
-- route_config : 路由规则配置。即将请求路由到后端的哪个集群。
-- cluster : 服务提供方集群。Envoy 通过服务发现定位集群成员并获取服务，具体路由到哪个集群成员由负载均衡策略决定。
-
-结合关键字段， 可以看出 Envoy 的大致处理流程如下：
-
-![baisc_front_proxy](./images/envoy_basic_front_proxy.png)
-
-
-Envoy 内部对请求的处理流程其实跟我们上面脑补的流程大致相同，即对请求的处理流程基本是不变的，而对于变化的部分，即对请求数据的处理，全部抽象为 Filter，
-- 请求的读写是 ReadFilter、WriteFilter，
-- HTTP 请求数据的编解码是 StreamEncoderFilter、StreamDecoderFilter，
-- TCP 的处理是 TcpProxyFilter，其继承自 ReadFilter，
-- HTTP 的处理是 ConnectionManager，其也是继承自 ReadFilter 等等，
-- 各个 Filter 最终会组织成一个 FilterChain，在收到请求后首先走 FilterChain，其次路由到指定集群并做负载均衡获取一个目标地址，然后转发出去。
-
-### 启动 Envoy
-
-envoy_basic_front_proxy.yaml 配置文件如下：
-
-```yaml
 admin:
   address:
     socket_address: { address: 127.0.0.1, port_value: 8081 }
@@ -285,10 +174,10 @@ static_resources:
                     - name: backend_baidu
                       domains: ["baidu.com"]
                       routes:
-                      - match:
-                          prefix: "/"
-                        route:
-                          cluster: baidu
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: baidu
                     - name: backend_httpbin
                       domains: ["httpbin.org"]
                       routes:
@@ -327,7 +216,29 @@ static_resources:
                     socket_address:
                       address: httpbin.org
                       port_value: 80
+
 ```
+
+可能会觉得它的配置太复杂了， 看 Envoy 是如何组织配置信息的，先简单解释一下其中的关键字段。
+
+- listener : Envoy 的监听地址，就是真正干活的。Envoy 会暴露一个或多个 Listener 来监听客户端的请求。
+- filter : 过滤器。在 Envoy 中指的是一些“可插拔”和可组合的逻辑处理层，是 Envoy 核心逻辑处理单元。
+- route_config : 路由规则配置。即将请求路由到后端的哪个集群。
+- cluster : 服务提供方集群。Envoy 通过服务发现定位集群成员并获取服务，具体路由到哪个集群成员由负载均衡策略决定。
+
+结合关键字段， 可以看出 Envoy 的大致处理流程如下：
+
+![baisc_front_proxy](./images/envoy_basic_front_proxy.png)
+
+
+Envoy 内部对请求的处理流程其实跟我们上面脑补的流程大致相同，即对请求的处理流程基本是不变的，而对于变化的部分，即对请求数据的处理，全部抽象为 Filter，
+- 请求的读写是 ReadFilter、WriteFilter，
+- HTTP 请求数据的编解码是 StreamEncoderFilter、StreamDecoderFilter，
+- TCP 的处理是 TcpProxyFilter，其继承自 ReadFilter，
+- HTTP 的处理是 ConnectionManager，其也是继承自 ReadFilter 等等，
+- 各个 Filter 最终会组织成一个 FilterChain，在收到请求后首先走 FilterChain，其次路由到指定集群并做负载均衡获取一个目标地址，然后转发出去。
+
+### 启动 Envoy
 
 ```shell
 envoy -c ./envoy_basic_front_proxy.yaml
