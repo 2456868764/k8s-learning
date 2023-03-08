@@ -405,9 +405,9 @@ raw TCP proxy
 
 侦听器（Listener）功能：
 
-1) 接收客户端请求的入口端点，通常由监听的套接字及调用的过滤器链所定义
+- 接收客户端请求的入口端点，通常由监听的套接字及调用的过滤器链所定义
 
-2）代理类的过滤器负责路由请求，例如tcp_proxy和http_connection_manager等
+- 代理类的过滤器负责路由请求，例如tcp_proxy和http_connection_manager等
 
 监听器的配置结构如下：
 
@@ -522,9 +522,11 @@ raw TCP proxy
 
 Envoy 进程中运行着一系列 Inbound/Outbound 监听器（Listener），Inbound 代理入站流量，Outbound 代理出站流量。Listener 的核心就是过滤器链（FilterChain），链中每个过滤器都能够控制流量的处理流程。过滤器链中的过滤器分为两个类别：
 
+- 监听器过滤器（Listener Filters）: 它会在过滤器链之前执行，用于操纵连接的元数据。这样做的目的是，无需更改 Envoy 的核心代码就可以方便地集成更多功能。例如，当监听的地址协议是 UDP 时，就可以指定 UDP 监听器过滤器。
 - 网络过滤器（Network Filters）: 工作在 L3/L4，是 Envoy 网络连接处理的核心，处理的是原始字节，分为 Read、Write 和 Read/Write 三类。
 - HTTP 过滤器（HTTP Filters）: 工作在 L7，由特殊的网络过滤器 HTTP connection manager 管理，专门处理 HTTP1/HTTP2/gRPC 请求。它将原始字节转换成 HTTP 格式，从而可以对 HTTP 协议进行精确控制。
-- 监听器过滤器（Listener Filters）: 它会在过滤器链之前执行，用于操纵连接的元数据。这样做的目的是，无需更改 Envoy 的核心代码就可以方便地集成更多功能。例如，当监听的地址协议是 UDP 时，就可以指定 UDP 监听器过滤器。
+- cluster network Filter， 在Envoy 1.2之后引入， 作用于某个cluster。指向该cluster的四层流量首先需要在该cluster下的所有cluster network Filter完成处理之后才会发送出去。而在接收到来自上游服务的响应之后，首先也会由该cluster下的所有cluster network Filter处理后再继续传递给其他Filter或者下游客户端。
+
 
 1、网络级(L3/L4)过滤器构成了Envoy连接处理的核心
 ```shell
@@ -555,8 +557,23 @@ Envoy 进程中运行着一系列 Inbound/Outbound 监听器（Listener），Inb
   HTTP过滤器在L7运行，它们访问和操作HTTP请求和响应；例如，gRPC-JSON Transcoder Filter为gRPC后端公开REST API，并将请求和响应转换为相应的格式；
   常用的HTTP过路器有Router、Rate limit 、Health check 、Gzip和Fault Injection等。
 ```
+
+![img.png](images/envoy_http.png)
+
+
+5. cluster network Filter
+
+借助cluster network Filter，envoy可以实现任意协议之间的流量转换。 以HTTP和Dubbo为例：
+* 当cluster A指向一个Dubbo服务时，可以为该cluster配置一个 HTTP2Dubbo的 cluster network Filter。之后，可以将HTTP请求发送给cluster A。
+* cluster A下的 HTTP2Dubbo 会在四层将HTTP请求重新解析并且拼接编码出Dubbo请求的二进制序列并发送给上游Dubbo服务。在接收到Dubbo服务响应之后，又可以利用同样的方式将Dubbo响应转换为HTTP响应。
+* 如此，cluster A可以完全被当作一个HTTP服务来治理，所有的细节都被屏蔽在cluster network Filter之中。其数据处理流程如下图所示
+
+![img.png](images/evnoy_dubbo.png)
+
+
 根据上面的分类，Envoy 过滤器的架构如下图所示：
 
 ![img.png](images/envoy_filters.png)
 
 ![img.png](images/envoy_filter2.png)
+
