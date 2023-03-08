@@ -14,7 +14,7 @@ sudo curl https://func-e.io/install.sh | bash -s -- -b /usr/local/bin
 
 ```shell
 
-func-e run -c /path/to/envoy.yaml
+func-e run -c /path/to/envoy_basic_front.yaml
 
 func-e run --config-yaml "admin: {address: {socket_address: {address: '127.0.0.1', port_value: 9901}}}"
 
@@ -41,7 +41,7 @@ docker pull envoyproxy/envoy:v1.25-latest
 启动 Envoy 容器时，可以用本地的 envoy.yaml 覆盖镜像中的 envoy.yaml：
 
 ```shell
- docker run -d --network=host -v `pwd`/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.25-latest
+ docker run -d --network=host -v `pwd`/envoy_basic_front.yaml:/etc/envoy/envoy_basic_front.yaml envoyproxy/envoy:v1.25-latest
 ```
 
 4. Centos  安装
@@ -70,7 +70,7 @@ sudo apt install -y getenvoy-envoy
 7. MacOs 安装 
 
 ```shell
-brew update
+brew tap tetratelabs/getenvoy
 brew install envoy
 ```
 
@@ -97,7 +97,9 @@ brew install envoy
   若控制平面实现了这些API ，则可以使用引导配置在整个基础架构中运行 Envoy 所有的配置更改都可通过管理服务器无缝地行动态传递，Envoy不需要重新启动
   于是，这使得 Envoy 成为一个通用数据平面，当与足够复杂的控制面相结合时可大大地降低整体操作性， Envoy已经成为现代服务网格和边缘关的 “ 通用数据平面 API ” ，包括Istio 、Ambassador和 Gloo 等项目
   
-3. 整体架构
+# 整体架构
+
+## envoy 核心架构
 
 ![架构](./images/envoy_arch.png)
 
@@ -105,7 +107,8 @@ Envoy 接收到请求后，会先走 FilterChain，通过各种 L3/L4/L7 Filter 
 
 其中每一个环节可以静态配置，也可以动态服务发现，也就是所谓的 xDS
 
-术语介绍
+### 核心组件介绍：
+
 - 下游（ DownstreamDownstream ）：
 
 下游主机连接到 Envoy ，发送请求并接收响应它们是 Envoy 的客户端
@@ -136,9 +139,253 @@ Route对应的配置/资源发现服务称之为 RDS 发现。Router中最核心
 
 在 Envoy 中指的是一些“可插拔”和可组合的逻辑处理层。是 Envoy 核心逻辑处理单元。
 
-xDS以及各个资源之间的关系下图所示。
+### XDS关系
+
+XDS 以及各个资源之间的关系下图所示。
 
 ![xds](./images/envoy_xds.png)
+
+## 配置文件
+
+示例使用 Envoy 作为边缘代理，根据不同的路由配置将请求转发到百度和 httpbin。指定请求头 host: baidu.com 时会将请求转发到 www.baidu.com；指定请求头 host: httpbin.org 时会将请求转发到 httpbin.org。
+
+envoy_basic_front.yaml 文件内容如下：
+
+```yaml
+static_resources:
+  listeners:
+  - address:
+      # Tells Envoy to listen on 0.0.0.0:15001
+      socket_address:
+        address: 0.0.0.0
+        port_value: 15001
+    filter_chains:
+        # Any requests received on this address are sent through this chain of filters
+        - filters:
+            # If the request is HTTP it will pass through this HTTP filter
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                codec_type: auto
+                stat_prefix: http
+              access_log:
+                name: envoy.access_loggers.file
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+                  path: /dev/stdout
+                route_config:
+                  name: search_route
+                  virtual_hosts:
+                    - name: backend
+                      domains:
+                        - "*"
+                      routes:
+                        # Match on host (:authority in HTTP2) headers
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: ":authority"
+                                exact_match: "baidu.com"
+                          route:
+                            # Send request to an endpoint in the Baidu cluster
+                            cluster: baidu
+                            host_rewrite_literal: www.baidu.com
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: ":authority"
+                                exact_match: "httpbin.org"
+                          route:
+                            # Send request to an endpoint in the Httpbin cluster
+                            cluster: httpbin
+                            host_rewrite_literal: httpbin.org
+                http_filters:
+                  - name: envoy.filters.http.router
+  clusters:
+    - name: baidu
+      connect_timeout: 1s
+      type: logical_dns
+      dns_lookup_family: V4_ONLY
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: baidu
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: www.baidu.com
+                      port_value: 80
+    - name: httpbin
+      connect_timeout: 1s
+      type: logical_dns
+      dns_lookup_family: V4_ONLY
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: bing
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: httpbin.org
+                      port_value: 80
+admin:
+  access_log_path: "/dev/stdout"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 15000
+
+```
+
+可能会觉得它的配置太复杂了， 看 Envoy 是如何组织配置信息的，先简单解释一下其中的关键字段。
+
+- listener : Envoy 的监听地址，就是真正干活的。Envoy 会暴露一个或多个 Listener 来监听客户端的请求。
+- filter : 过滤器。在 Envoy 中指的是一些“可插拔”和可组合的逻辑处理层，是 Envoy 核心逻辑处理单元。
+- route_config : 路由规则配置。即将请求路由到后端的哪个集群。
+- cluster : 服务提供方集群。Envoy 通过服务发现定位集群成员并获取服务，具体路由到哪个集群成员由负载均衡策略决定。
+
+结合关键字段， 可以看出 Envoy 的大致处理流程如下：
+
+![baisc_front_proxy](./images/envoy_basic_front_proxy.png)
+
+
+Envoy 内部对请求的处理流程其实跟我们上面脑补的流程大致相同，即对请求的处理流程基本是不变的，而对于变化的部分，即对请求数据的处理，全部抽象为 Filter，
+- 请求的读写是 ReadFilter、WriteFilter，
+- HTTP 请求数据的编解码是 StreamEncoderFilter、StreamDecoderFilter，
+- TCP 的处理是 TcpProxyFilter，其继承自 ReadFilter，
+- HTTP 的处理是 ConnectionManager，其也是继承自 ReadFilter 等等，
+- 各个 Filter 最终会组织成一个 FilterChain，在收到请求后首先走 FilterChain，其次路由到指定集群并做负载均衡获取一个目标地址，然后转发出去。
+
+### 启动 Envoy
+
+```shell
+envoy -c ./envoy_basic_front_proxy.yaml
+
+```
+打开一个新的 shell，使用 curl 访问 Envoy，并添加 Header 字段 host: baidu.com：
+```shell
+
+curl -s -o /dev/null -vvv -H 'Host: baidu.com' 127.0.0.1:8080
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to 127.0.0.1 (127.0.0.1) port 10000 (#0)
+> GET / HTTP/1.1
+> Host: baidu.com
+> User-Agent: curl/7.64.1
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< accept-ranges: bytes
+< cache-control: private, no-cache, no-store, proxy-revalidate, no-transform
+< content-length: 2381
+< content-type: text/html
+< date: Wed, 08 Mar 2023 02:57:09 GMT
+< etag: "588604c8-94d"
+< last-modified: Mon, 23 Jan 2017 13:27:36 GMT
+< pragma: no-cache
+< server: envoy
+< set-cookie: BDORZ=27315; max-age=86400; domain=.baidu.com; path=/
+< x-envoy-upstream-service-time: 33
+```
+
+同理可以访问 httpbin.org：
+
+```shell
+
+curl  -s -v -H  "Host: httpbin.org" "http://127.0.0.1:8080/anything/get?foo=1"
+
+* Connected to 127.0.0.1 (127.0.0.1) port 10000 (#0)
+> GET /anything/get?foo=1 HTTP/1.1
+> Host: httpbin.org
+> User-Agent: curl/7.64.1
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< date: Wed, 08 Mar 2023 02:55:56 GMT
+< content-type: application/json
+< content-length: 417
+< server: envoy
+< access-control-allow-origin: *
+< access-control-allow-credentials: true
+< x-envoy-upstream-service-time: 904
+<
+{
+"args": {
+"foo": "1"
+},
+"data": "",
+"files": {},
+"form": {},
+"headers": {
+"Accept": "*/*",
+"Host": "httpbin.org",
+"User-Agent": "curl/7.64.1",
+"X-Amzn-Trace-Id": "Root=1-6407f93b-08d089d12394a0ef3d6d6b12",
+"X-Envoy-Expected-Rq-Timeout-Ms": "15000"
+},
+"json": null,
+"method": "GET",
+"origin": "114.93.15.90",
+"url": "http://httpbin.org/anything/get?foo=1"
+}
+* Connection #0 to host 127.0.0.1 left intact
+* Closing connection 0
+
+```
+
+envoy 管理界面
+
+```shell
+http://127.0.0.1:8081
+http://127.0.0.1:8081/config_dump?resource=&mask=&name_regex=
+```
+
+### 配置文件结构
+
+Envoy 的整体配置结构如下：
+
+```json
+{
+  "node": "{...}",
+  "static_resources": "{...}",
+  "dynamic_resources": "{...}",
+  "cluster_manager": "{...}",
+  "hds_config": "{...}",
+  "flags_path": "...",
+  "stats_sinks": [],
+  "stats_config": "{...}",
+  "stats_flush_interval": "{...}",
+  "watchdog": "{...}",
+  "tracing": "{...}",
+  "runtime": "{...}",
+  "layered_runtime": "{...}",
+  "admin": "{...}",
+  "overload_manager": "{...}",
+  "enable_dispatcher_stats": "...",
+  "header_prefix": "...",
+  "stats_server_version_override": "{...}",
+  "use_tcp_for_dns_lookups": "..."
+}
+```
+- node : 节点标识，配置的是 Envoy 的标记信息，management server 利用它来标识不同的 Envoy 实例。参考 core.Node
+- static_resources : 定义静态配置，是 Envoy 核心工作需要的资源，由 Listener、Cluster 和 Secret 三部分组成。参考 config.bootstrap.v2.Bootstrap.StaticResources
+- dynamic_resources : 定义动态配置，通过 xDS 来获取配置。可以同时配置动态和静态。
+- cluster_manager : 管理所有的上游集群。它封装了连接后端服务的操作，当 Filter 认为可以建立连接时，便调用 cluster_manager 的 API 来建立连接。cluster_manager 负责处理负载均衡、健康检查等细节。
+- hds_config : 健康检查服务发现动态配置。
+- stats_sinks : 状态输出插件。可以将状态数据输出到多种采集系统中。一般通过 Envoy 的管理接口 /stats/prometheus 就可以获取 Prometheus 格式的指标，这里的配置应该是为了支持其他的监控系统。
+- stats_config : 状态指标配置。
+- stats_flush_interval : 状态指标刷新时间。
+- watchdog : 看门狗配置。Envoy 内置了一个看门狗系统，可以在 Envoy 没有响应时增加相应的计数器，并根据计数来决定是否关闭 Envoy 服务。
+- tracing : 分布式追踪相关配置。
+- runtime : 运行时状态配置（已弃用）。
+- layered_runtime : 层级化的运行时状态配置。可以静态配置，也可以通过 RTDS 动态加载配置。
+- admin : 管理接口。
+- overload_manager : 过载过滤器。
+- header_prefix : Header 字段前缀修改。例如，如果将该字段设为 X-Foo，那么 Header 中的 x-envoy-retry-on 将被会变成 x-foo-retry-on。
+- use_tcp_for_dns_lookups : 强制使用 TCP 查询 DNS。可以在 Cluster 的配置中覆盖此配置。
+
 
 
 
