@@ -1,0 +1,5 @@
+FROM envoyproxy/envoy:v1.25-latest
+
+COPY ./eds.yaml* ./envoy.yaml /etc/envoy/
+
+RUN apt-get update && apt-get install vim curl -y

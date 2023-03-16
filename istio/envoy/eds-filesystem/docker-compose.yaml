@@ -1,0 +1,40 @@
+version: '3.3'
+services:
+  envoy:
+    build:
+      context: .
+      dockerfile: Dockerfile-envoy
+    networks:
+      envoymesh:
+        aliases:
+        - envoy
+    expose:
+    - "80"
+    - "9091"
+    ports:
+    - "8080:80"
+    - "9091:9091"
+  webserver1:
+    image: kennethreitz/httpbin
+    networks:
+      envoymesh:
+        aliases:
+        - webserver1
+    expose:
+    - "80"
+    depends_on:
+    - "envoy"
+
+  webserver2:
+    image: kennethreitz/httpbin
+    networks:
+      envoymesh:
+        aliases:
+        - webserver2
+    expose:
+    - "80"
+    depends_on:
+    - "envoy"
+
+networks:
+  envoymesh: {}
