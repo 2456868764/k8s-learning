@@ -215,3 +215,6 @@ journalctl -k
 * 44. 日志管理之systemd日志,持久化设置,journal,systemd-journald,查看日志(journalctl)_51CTO博客_systemd查看日志
 
 
+# git
+
+* https://m.php.cn/manual/view/35106.html
