@@ -5,9 +5,9 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"os"
-
+	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 
@@ -22,6 +22,26 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("ROOT [step_1] PersistentPreRun:")
+	},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("ROOT [step_2] PreRun:")
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("ROOT [step_3] Run:")
+
+	},
+
+	PostRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("ROOT [step_4] PostRun:")
+	},
+
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("ROOT [step_5] PersistentPostRun:")
+	},
+
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -51,5 +71,4 @@ func init() {
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
 
