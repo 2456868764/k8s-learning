@@ -187,7 +187,7 @@ flagName = "feature-gates"
 ```go
 
 type FeatureSpec struct {
-	// 特征激活状态
+	// 特征默认激活状态
 	Default bool
 	// 特征状态是否锁定，不能变更
 	LockToDefault bool
