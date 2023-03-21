@@ -770,27 +770,27 @@ cluster的配置
 ```yaml
 # 类似如下纯静态格式的Cluster定义
 clusters:
-- name: webcluster
+- name: webcluster1
   connect_timeout: 0.25s
   type: STATIC #类型为静态
   lb_policy: ROUND_ROBIN
   load_assignment:
-    cluster_name: webcluster
+    cluster_name: webcluster1
     endpoints:
     - lb_endpoints:
       - endpoint:
         address:
           socket_address:
-            address: 172.31.11.11
+            address: 172.21.0.3
             port_value: 8080
 
 #使用了EDS的配置
 clusters:
-- name: targetCluster
+- name: webcluster1
   connect_timeout: 0.25s
   type: EDS #类型为EDS
   eds_cluster_config:
-    service_name: webcluster
+    service_name: webcluster1
     eds_config:
       path: '/etc/envoy/eds.yaml' # 指定订阅的文件路径
 #提示：文件后缀名为conf，则资源要以json格式定义；文件后缀名为yaml，则资源需要以yaml格式定义；另外，动态配置中，各Envoy实例需要有惟的id标识
@@ -800,7 +800,7 @@ clusters:
 
 EDS的配置
 
-1) 文件/etc/envoy/eds.yaml中以Discovery Response报文的格式给出响应实例，例如，下面的配置示例用于存在地址172.24.0.3某上游服务器可提供服务时
+1) 文件/etc/envoy/eds.yaml中以 Discovery Response 报文的格式给出响应实例，例如，下面的配置示例用于存在地址 172.21.0.3 某上游服务器可提供服务时
 
 2) 响应报文需要以yaml格式给出
 
@@ -813,13 +813,128 @@ resources:
       - endpoint:
         address:
           socket_address:
-            address: 172.24.0.3
+            address: 172.21.0.3
             port_value: 8080
 ```
 
-随后，修改该文件，将172.31.11.12也添加进后端端点列表中，模拟配置变动
+3) 测试
 
+- 执行命令
 
+```shell
+cd ./eds-filesystem
+sudo docker-compose up -d --build
+```
+- 检查docker 运行
+
+```shell
+sudo docker ps
+
+CONTAINER ID   IMAGE                  COMMAND                  CREATED       STATUS       PORTS                                                                                         NAMES
+c87a1782a38b   2dabae637bd2           "./httpbin"              3 hours ago   Up 3 hours   8080/tcp                                                                                      eds-filesystem_webserver2_1
+bdfec256d456   2dabae637bd2           "./httpbin"              3 hours ago   Up 3 hours   8080/tcp                                                                                      eds-filesystem_webserver1_1
+d60808d99cb8   eds-filesystem_envoy   "/docker-entrypoint.…"   3 hours ago   Up 3 hours   0.0.0.0:9091->9091/tcp, :::9091->9091/tcp, 10000/tcp, 0.0.0.0:8080->80/tcp, :::8080->80/tcp   eds-filesystem_envoy_1
+
+```
+
+- 检查 
+
+```shell
+curl http://127.0.0.1:9091/clusters
+
+webcluster1::eds_service_name::webcluster1
+webcluster1::172.21.0.3:8080::cx_active::0
+webcluster1::172.21.0.3:8080::cx_connect_fail::0
+webcluster1::172.21.0.3:8080::cx_total::4
+webcluster1::172.21.0.3:8080::rq_active::0
+webcluster1::172.21.0.3:8080::rq_error::0
+webcluster1::172.21.0.3:8080::rq_success::351
+webcluster1::172.21.0.3:8080::rq_timeout::0
+webcluster1::172.21.0.3:8080::rq_total::351
+webcluster1::172.21.0.3:8080::hostname::
+webcluster1::172.21.0.3:8080::health_flags::healthy
+webcluster1::172.21.0.3:8080::weight::1
+webcluster1::172.21.0.3:8080::region::
+webcluster1::172.21.0.3:8080::zone::
+webcluster1::172.21.0.3:8080::sub_zone::
+webcluster1::172.21.0.3:8080::canary::false
+webcluster1::172.21.0.3:8080::priority::0
+webcluster1::172.21.0.3:8080::success_rate::-1
+webcluster1::172.21.0.3:8080::local_origin_success_rate::-1
+
+```
+
+```shell
+curl http://127.0.0.1:8080/hostname
+
+"bdfec256d456"
+
+```
+
+- 变更eds 输出，增加另外 EndPoint
+
+```shell
+# 进入 envoy 容器
+sudo docker exec -it d60808d99cb8  /bin/sh
+
+cd /etc/envoy
+cp eds.v1.yaml eds.yaml
+# envoy 重新加载配置
+mv eds.yaml tmp.yaml
+mv tmp.yaml eds.yaml
+
+```
+
+```shell
+curl http://127.0.0.1:9091/clusters
+
+webcluster1::eds_service_name::webcluster1
+webcluster1::172.21.0.3:8080::cx_active::1
+webcluster1::172.21.0.3:8080::cx_connect_fail::0
+webcluster1::172.21.0.3:8080::cx_total::5
+webcluster1::172.21.0.3:8080::rq_active::0
+webcluster1::172.21.0.3:8080::rq_error::0
+webcluster1::172.21.0.3:8080::rq_success::353
+webcluster1::172.21.0.3:8080::rq_timeout::0
+webcluster1::172.21.0.3:8080::rq_total::353
+webcluster1::172.21.0.3:8080::hostname::
+webcluster1::172.21.0.3:8080::health_flags::healthy
+webcluster1::172.21.0.3:8080::weight::1
+webcluster1::172.21.0.3:8080::region::
+webcluster1::172.21.0.3:8080::zone::
+webcluster1::172.21.0.3:8080::sub_zone::
+webcluster1::172.21.0.3:8080::canary::false
+webcluster1::172.21.0.3:8080::priority::0
+webcluster1::172.21.0.3:8080::success_rate::-1
+webcluster1::172.21.0.3:8080::local_origin_success_rate::-1
+webcluster1::172.21.0.4:8080::cx_active::1
+webcluster1::172.21.0.4:8080::cx_connect_fail::0
+webcluster1::172.21.0.4:8080::cx_total::1
+webcluster1::172.21.0.4:8080::rq_active::0
+webcluster1::172.21.0.4:8080::rq_error::0
+webcluster1::172.21.0.4:8080::rq_success::2
+webcluster1::172.21.0.4:8080::rq_timeout::0
+webcluster1::172.21.0.4:8080::rq_total::2
+webcluster1::172.21.0.4:8080::hostname::
+webcluster1::172.21.0.4:8080::health_flags::healthy
+webcluster1::172.21.0.4:8080::weight::1
+webcluster1::172.21.0.4:8080::region::
+webcluster1::172.21.0.4:8080::zone::
+webcluster1::172.21.0.4:8080::sub_zone::
+webcluster1::172.21.0.4:8080::canary::false
+webcluster1::172.21.0.4:8080::priority::0
+webcluster1::172.21.0.4:8080::success_rate::-1
+webcluster1::172.21.0.4:8080::local_origin_success_rate::-1
+```
+
+```shell
+curl http://127.0.0.1:8080/hostname
+
+# 轮询输出两个 EndPoint 主机名
+"bdfec256d456"
+"c87a1782a38b"
+
+```
 
 
 
