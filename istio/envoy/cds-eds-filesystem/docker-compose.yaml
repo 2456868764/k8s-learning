@@ -3,8 +3,7 @@ services:
   envoy:
     build:
       context: .
-      dockerfile: Dockerf
-      ile-envoy
+      dockerfile: Dockerfile-envoy
     networks:
       envoymesh:
         aliases:

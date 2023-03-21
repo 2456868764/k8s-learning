@@ -802,7 +802,7 @@ EDS的配置
 
 1) 文件/etc/envoy/eds.yaml中以Discovery Response报文的格式给出响应实例，例如，下面的配置示例用于存在地址172.24.0.3某上游服务器可提供服务时
 
-2) 响应报文需要以JSON格式给出
+2) 响应报文需要以yaml格式给出
 
 ```yaml
 resources:
@@ -814,7 +814,7 @@ resources:
         address:
           socket_address:
             address: 172.24.0.3
-            port_value: 80
+            port_value: 8080
 ```
 
 随后，修改该文件，将172.31.11.12也添加进后端端点列表中，模拟配置变动

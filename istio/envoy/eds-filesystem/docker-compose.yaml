@@ -15,26 +15,31 @@ services:
     - "8080:80"
     - "9091:9091"
   webserver1:
-    image: kennethreitz/httpbin
+    image: 2456868764/httpbin:envoy
     networks:
       envoymesh:
         aliases:
         - webserver1
+        ipv4_address: 172.21.0.3
     expose:
-    - "80"
+    - "8080"
     depends_on:
     - "envoy"
 
   webserver2:
-    image: kennethreitz/httpbin
+    image: 2456868764/httpbin:envoy
     networks:
       envoymesh:
         aliases:
         - webserver2
+        ipv4_address: 172.21.0.4
     expose:
-    - "80"
+    - "8080"
     depends_on:
     - "envoy"
 
 networks:
-  envoymesh: {}
+  envoymesh:
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

@@ -4,8 +4,12 @@ import (
 	"github.com/2456868764/k8s-learning/istio/envoy/httpbin/api"
 	"github.com/gin-gonic/gin"
 )
+
 func main() {
 	r := gin.Default()
 	r.GET("/", api.Anything)
-	r.Run(":80")
+	r.GET("/hostname", api.HostName)
+	r.GET("/headers", api.Headers)
+	r.GET("/healthz", api.Healthz)
+	r.Run(":8080")
 }

@@ -25,9 +25,12 @@ COPY cmd cmd/
 RUN env
 RUN go build -ldflags="${LDFLAGS}" -a -o httpbin cmd/main.go
 
-FROM alpine:3.15.3
+FROM envoyproxy/envoy:v1.25-latest
 WORKDIR /app
 ARG PKGNAME
 EXPOSE 8080
+
 COPY --from=builder /app/httpbin .
-CMD ["./httpbin"]
+COPY service-envoy.yaml /etc/envoy/envoy.yaml
+COPY entrypoint.sh /entrypoint.sh
+CMD ["/entrypoint.sh"]

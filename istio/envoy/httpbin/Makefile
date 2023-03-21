@@ -19,8 +19,9 @@ REGISTRY_USER_NAME?=""
 REGISTRY_PASSWORD?=""
 
 # Image URL to use all building/pushing image targets
-HTTPBIN_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/httpbin:${GIT_VERSION}"
+HTTPBIN_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/httpbin:envoy"
 
+HTTPBIN_SIDECAR_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/httpbin:sidecar"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -90,6 +91,9 @@ build: ## Build binary with the httpbin.
 image: ## Build docker image with the httpbin.
 	docker build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=httpbin -t ${HTTPBIN_IMG} .
 
+.PHONY: image-sidecar
+image-sidecar: ## Build docker image with the httpbin.
+	docker build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=httpbin -t ${HTTPBIN_SIDECAR_IMG} ./Dockerfile_sidecar
 
 .PHONY: push-image
 push-image: ## Push images.
@@ -97,3 +101,11 @@ ifneq ($(REGISTRY_USER_NAME), "")
 	docker login -u $(REGISTRY_USER_NAME) -p $(REGISTRY_PASSWORD) ${REGISTRY}
 endif
 	docker push ${HTTPBIN_IMG}
+
+
+.PHONY: push-image-sidecar
+push-image-sidecar: ## Push images.
+ifneq ($(REGISTRY_USER_NAME), "")
+	docker login -u $(REGISTRY_USER_NAME) -p $(REGISTRY_PASSWORD) ${REGISTRY}
+endif
+	docker push ${HTTPBIN_SIDECAR_IMG}

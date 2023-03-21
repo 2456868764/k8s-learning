@@ -7,13 +7,14 @@ import (
 )
 
 type Response struct {
-	Args    map[string]string `json:"args""`
-	Form    map[string]string `json:"form"`
-	Headers map[string]string `json:"headers"`
-	Method  string            `json:"method"`
-	Origin  string            `json:"origin"`
-	Url     string            `json:"url"`
-	Envs    map[string]string `json:"envs"`
+	Args     map[string]string `json:"args""`
+	Form     map[string]string `json:"form"`
+	Headers  map[string]string `json:"headers"`
+	Method   string            `json:"method"`
+	Origin   string            `json:"origin"`
+	Url      string            `json:"url"`
+	Envs     map[string]string `json:"envs"`
+	HostName string            `json:"host_name"`
 }
 
 func NewResponseFromContext(c *gin.Context) Response {
@@ -42,6 +43,7 @@ func NewResponseFromContext(c *gin.Context) Response {
 
 	response.Origin = c.Request.Header.Get("Origin")
 	response.Envs = getAllEnvs()
+	response.HostName = getHostName()
 	return response
 }
 
@@ -57,4 +59,24 @@ func getAllEnvs() map[string]string {
 		}
 	}
 	return allEnvs
+}
+
+func getHostName() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return ""
+	}
+	return hostname
+}
+
+func FileExisted(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+		return true
+	}
+	return true
+
 }

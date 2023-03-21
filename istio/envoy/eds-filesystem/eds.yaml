@@ -1,4 +1,4 @@
-version_info: "2"
+version_info: "0"
 resources:
 - "@type": type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment
   cluster_name: webcluster1
@@ -7,10 +7,5 @@ resources:
     - endpoint:
         address:
           socket_address:
-            address: 127.0.0.1
-            port_value: 8081
-    - endpoint:
-        address:
-          socket_address:
-            address: 127.0.0.1
+            address: 172.21.0.3
             port_value: 8080
