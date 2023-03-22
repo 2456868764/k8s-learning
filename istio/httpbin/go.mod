@@ -1,4 +1,4 @@
-module github.com/2456868764/k8s-learning/istio/envoy/httpbin
+module github.com/2456868764/k8s-learning/istio/httpbin
 
 go 1.19
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/2456868764/k8s-learning/istio/envoy/httpbin/api"
+	"github.com/2456868764/k8s-learning/istio/httpbin/api"
 	"github.com/gin-gonic/gin"
 )
 
