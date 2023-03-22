@@ -306,6 +306,180 @@ virtual_hosts:
 
 ```
 
+## 路由匹配（ [route.RouteMatch](https://cloudnative.to/envoy/api-v3/config/route/v3/route_components.proto.html#envoy-v3-api-msg-config-route-v3-routematch)）
+
+- 匹配条件是定义的检测机制，用于过滤出符合条件的请求并对其作出所需的处理，例如路由、重定向或直接响应等。必须要定义prefix、path和regex三种匹配条件中的一种形式。
+
+- 除了必须设置上述三者其中之一外，还可额外完成如下限定:
+  - 区分字符大小写（case_sensitive ）
+  - 匹配指定的运行键值表示的比例进行流量迁移（runtime_fraction）； 不断地修改运行时键值完成流量迁移。
+  - 基于标头的路由：匹配指定的一组标头（headers）；
+  - 基于参数的路由：匹配指定的一组URL查询参数（query_parameters）；
+  - 仅匹配grpc流量（grpc）；
+
+```json
+
+{
+  "prefix": "...",             #URL中path前缀匹配条件
+  "path": "...",               #path精确匹配条件
+  "safe_regex": "{...}",       #整个path（不包含query字串）必须与
+  "connect_matcher": "{...}",  #指定的正则表达式匹配
+  "case_sensitive": "{...}",
+  "runtime_fraction": "{...}",
+  "headers": [],
+  "query_parameters": [],
+  "grpc": "{...}",
+  "tls_context": "{...}"
+}
+
+```
+
+## 基于标头的路由匹配（[route.HeaderMatch](https://cloudnative.to/envoy/api-v3/config/route/v3/route_components.proto.html#envoy-v3-api-msg-config-route-v3-headermatcher)）
+
+需要额外匹配指定的一组标头,
+
+- 路由器将根据路由配置中的所有指定标头检查请求的标头
+  - 若路由中指定的所有标头都存在于请求中且具有相同值，则匹配
+  - 若配置中未指定标头值，则基于标头的存在性进行判断
+- 标头及其值的上述检查机制仅能定义exact_match、safe_regex_match range_match、 present_match 、 prefix_match 、suffix_match 、contains_match及string_match其中之一；
+
+```json
+
+{
+  "name": "...",
+  "exact_match": "...",        # 精确值匹配
+  "safe_regex_match": "{...}", # 正则表达式模式匹配
+  "range_match": "{...}",      # 值范围匹配，检查标头值是否在指定的范围内
+  "present_match": "...",      # 标头存在性匹配，检查标头存在与否
+  "prefix_match": "...",       # 值前缀匹配
+  "suffix_match": "...",       # 值后缀匹配
+  "contains_match": "...",     # 检测标头值是否包含此处指定的字符串
+  "invert_match": "..."        # 是否将匹配的检测结果取反，即以不满足条件为”真” ，默认为fase
+}
+
+
+```
+
+## 基于查询参数的路由匹配([route.QueryParameterMatcher](https://cloudnative.to/envoy/api-v3/config/route/v3/route_components.proto.html#envoy-v3-api-msg-config-route-v3-queryparametermatcher))
+
+指定的路由需要额外匹配的一组URL查询参数。
+
+路由器将根据路由配置中指定的所有查询参数检查路径头中的查询字符串。
+
+- 查询参数匹配将请求的URL中查询字符串视为以＆符号分隔的“键”或“键=值”元素列表
+- 若存在指定的查询参数，则所有参数都必须与URL中的查询字符串匹配
+- 匹配条件指定为string_match或present_match其中之一
+
+```json
+
+{
+  "name": "...",
+  "string_match": "{
+      "exact": "...",
+      "prefix": "...",
+      "suffix": "...",
+      "safe_regex": "{...}",
+      "contains": "...",
+      "ignore_case": "..."
+    }"
+  "present_match": "..."
+}
+
+```
+
+## 路由目标之一：路由到指定集群([RouteAction](https://cloudnative.to/envoy/api-v3/config/route/v3/route_components.proto.html#envoy-v3-api-msg-config-route-v3-routeaction))
+
+匹配到的流量可路由至如下三种目标之一:
+
+- cluster：路由至指定的上游集群；
+- cluster_header：路由至请求标头中由cluster_header的值指定的上游集群；
+- weighted_clusters：基于权重将请求路由至多个上游集群，进行流量分割；
+
+![img.png](images/envoy_cluster.png)
+
+注意：路由到所有集群的流量之和要等于100%
+
+```json
+{
+  "cluster": "...",
+  "cluster_header": "...",
+  "weighted_clusters": "{...}",
+  "cluster_not_found_response_code": "...",
+  "metadata_match": "{...}",
+  "prefix_rewrite": "...",
+  "regex_rewrite": "{...}",
+  "host_rewrite_literal": "...",
+  "auto_host_rewrite": "{...}",
+  "host_rewrite_header": "...",
+  "host_rewrite_path_regex": "{...}",
+  "timeout": "{...}",
+  "idle_timeout": "{...}",
+  "retry_policy": "{...}",
+  "request_mirror_policies": [],
+  "priority": "...",
+  "rate_limits": [],
+  "include_vh_rate_limits": "{...}",
+  "hash_policy": [],
+  "cors": "{...}",
+  "max_grpc_timeout": "{...}",
+  "grpc_timeout_offset": "{...}",
+  "upgrade_configs": [],
+  "internal_redirect_policy": "{...}",
+  "internal_redirect_action": "...",
+  "max_internal_redirects": "{...}",
+  "hedge_policy": "{...}",
+  "max_stream_duration": "{...}"
+}
+```
+
+
+
+## 路由目标之二：重定向 ([redirect](https://cloudnative.to/envoy/api-v3/config/route/v3/route_components.proto.html#envoy-v3-api-msg-config-route-v3-redirectaction))
+
+- 为请求响应一个301应答，从而将请求从一个URL永久重定向至另一个URL 
+- Envoy支持如下重定向行为
+  - 协议重定向：https_redirect或scheme_redirect 二者只能使用其一； 主机重定向：host_redirect
+  - 端口重定向：port_redirect
+  - 路径重定向：path_redirect
+  - 路径前缀重定向：prefix_redirect
+  - 正则表达式模式定义的重定向：regex_rewrite
+  - 重设响应码：response_code，默认为301；
+  - strip_query：是否在重定向期间删除URL中的查询参数，默认为false ；
+
+```json
+{
+  "https_redirect": "...",
+  "scheme_redirect": "...",
+  "host_redirect": "...",
+  "port_redirect": "...",
+  "path_redirect": "...",
+  "prefix_rewrite": "...",
+  "response_code": "...",
+  "strip_query": "..."
+}
+```
+
+## 路由目标之三：直接响应请求 ([direct_response](https://cloudnative.to/envoy/api-v3/config/route/v3/route_components.proto.html#envoy-v3-api-msg-config-route-v3-directresponseaction))
+
+- Envoy还可以直接响应请求
+```json
+{
+"status": "..."
+"body": "{...}"
+}
+```
+- status:指定响应码的状态
+
+- body：响应正文，可省略，默认为空；需要指定时应该由body通过如下三种方式之一给出数据源
+
+```json
+{
+"filename": "...",
+"inline_bytes": "...",
+"inline_string": "..."
+}
+```
+
 ## [HTTP 头部操作](https://cloudnative.to/envoy/configuration/http/http_conn_man/headers.html)
 
 HTTP 连接管理器在解码过程中（接收请求时）和编码过程中（发送响应时）都会操作多项 HTTP 头部。
