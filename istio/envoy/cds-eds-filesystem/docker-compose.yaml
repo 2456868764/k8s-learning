@@ -9,32 +9,40 @@ services:
         aliases:
         - envoy
     expose:
-    - "80"
-    - "9901"
+      - "80"
+      - "9091"
+    ports:
+      - "8080:80"
+      - "9091:9091"
 
   webserver1:
-    image: ikubernetes/mini-http-server:v0.3
+    image: 2456868764/httpbin:envoy
     networks:
       envoymesh:
         aliases:
         - webserver1
         - myservice
+        ipv4_address: 172.21.0.3
     expose:
-    - "8081"
+    - "8080"
     depends_on:
     - "envoy"
 
   webserver2:
-    image: ikubernetes/mini-http-server:v0.3
+    image: 2456868764/httpbin:envoy
     networks:
       envoymesh:
         aliases:
         - webserver2
         - myservice
+        ipv4_address: 172.21.0.4
     expose:
-    - "8081"
+    - "8080"
     depends_on:
     - "envoy"
 
 networks:
-  envoymesh: {}
+  envoymesh:
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

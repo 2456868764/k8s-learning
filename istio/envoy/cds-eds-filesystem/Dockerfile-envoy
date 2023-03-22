@@ -1,5 +1,6 @@
-FROM envoyproxy/envoy-alpine:v1.11.1
+FROM envoyproxy/envoy:v1.25-latest
 
-COPY ./eds.conf ./envoy.yaml ./cds.conf* /etc/envoy/
+COPY ./eds.yaml ./cds.yaml ./cds.v2.yaml ./envoy.yaml /etc/envoy/
 
-RUN apk update && apk --no-cache add curl
+RUN apt-get update && apt-get install vim curl -y
+
