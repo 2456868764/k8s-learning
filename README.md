@@ -48,9 +48,11 @@
 * Calico
 * Cilium
 
-### 9.日志和监控
-* EFK
-* Prometheus
+### 9.可观测性
+* 日志
+* 监控
+  * [Prometheus PromQL](./observability/prometheus-promql.md)
+* Trace
 
 ### 10.GitOps
 * harbor
@@ -67,11 +69,12 @@
 * [Apisix + nacos + dubbo](./microservice/apisix.md)
 
 ### 13.服务网格
-* [envoy 基础](./istio/envoy_basic.md)
-* [envoy xds](./istio/envoy_xds.md)
-* [envoy Cluster管理]
-* [envoy http流量管理](./istio/envoy_http.md)
-* [envoy Filter开发]
+* envoy
+  * [envoy 基础](./istio/envoy_basic.md)
+  * [envoy xds](./istio/envoy_xds.md)
+  * [envoy Cluster管理](./istio/envoy_cluser.md)
+  * [envoy http流量管理](./istio/envoy_http.md)
+  * [envoy Filter]
 * istio
 
 
