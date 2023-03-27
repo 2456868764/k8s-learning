@@ -1,6 +1,6 @@
 # k8s-learning
 
-## 目录
+## K8s
 
 ### 1.容器技术深度剖析
 * 容器技术基础
@@ -39,7 +39,7 @@
 * CRI & CNI & CSI 
 
 ### 7.k8s数据面
-* KubeDNS
+* CoreDNS
 * Ingress & Service
 * kube-proxy & Iptables
 * Ipvs
@@ -48,27 +48,36 @@
 * Calico
 * Cilium
 
-### 9.可观测性
+## Operator开发
+
+* Cobra
+* GRPC
+* Client-Go
+* Controll-Runtime
+* KubeBuilder
+
+
+## 可观测性
 * 日志
 * 监控
   * [Prometheus PromQL](./observability/prometheus-promql.md)
 * Trace
 
-### 10.GitOps
+## GitOps
 * harbor
 * helm
 * kustomize
 * ArgoCD
 
-### 11.应用迁移和生成化运维实践
+## 应用迁移和生成化运维实践
 * 运维最佳实践
 * 排查
 
 
-### 12.微服务项目开发和部署案例
+## 微服务项目开发和部署案例
 * [Apisix + nacos + dubbo](./microservice/apisix.md)
 
-### 13.服务网格
+## 服务网格
 * envoy
   * [envoy 基础](./istio/envoy_basic.md)
   * [envoy xds](./istio/envoy_xds.md)
