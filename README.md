@@ -51,7 +51,15 @@
 ## Operator开发
 
 * [Cobra](./doc/cobra.md)
-* [GRPC](./doc/grpc.md)
+* GRPC
+  * [protobuf基础](./doc/grpc_basic.md)
+  * [通信模式](./doc/grpc_transport.md) 
+  * 拦截器
+  * metadata
+  * 超时控制
+  * 认证
+  * 安全
+
 * K8s Api
 * Client-Go
 * Controller-Runtime
