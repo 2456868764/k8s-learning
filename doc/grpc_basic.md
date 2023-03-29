@@ -81,7 +81,7 @@ google/protobuf/descriptor.proto 列出了所有支持的 option 以及作用。
 
 option 分为file-level、message-level 和 field-level 三种级别，分别在不同的位置使用。
 
-- File-level options
+#### File-level options
 
 file 级别的 options 用法：
 
@@ -99,7 +99,7 @@ option cc_enable_arenas = true;
 option optimize_for = SPEED;
 ```
 
-- message-level options
+#### message-level options
 
 message 级别的 option 用法：
 
@@ -110,7 +110,7 @@ message Foo {
 }
 ```
 
-- field-level options
+#### field-level options
 
 field 级别的 option 用法：
 
@@ -121,7 +121,7 @@ optional int32 old_field = 6 [deprecated=true];
 
 ```
 
-- 自定义 options
+#### 自定义 options
 
 可以通过扩展 google.protobuf.XXXOptions 增加自定义的 option：
 
@@ -484,7 +484,7 @@ protoc --proto_path=src --go_out=out --go_opt=paths=source_relative foo.proto ba
 注意: 
 > protoc-gen-go要求pb文件必须指定go包的路径，即
 >
-> option go_package = "ecommerce/";
+> option go_package = "order/";
 
 --go_out  :指定go代码生成的基本路径
 
