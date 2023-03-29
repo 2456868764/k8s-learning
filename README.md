@@ -30,7 +30,7 @@
 
 
 ### 5.k8s安全
-* RBAC
+* [RBAC](./doc/security.md)
 * NetworkPolicy
 * SecurtiyContext
 
@@ -50,10 +50,11 @@
 
 ## Operator开发
 
-* Cobra
-* GRPC
+* [Cobra](./doc/cobra.md)
+* [GRPC](./doc/grpc.md)
+* K8s Api
 * Client-Go
-* Controll-Runtime
+* Controller-Runtime
 * KubeBuilder
 
 
@@ -85,6 +86,13 @@
   * [envoy http流量管理](./istio/envoy_http.md)
   * [envoy Filter]
 * istio
+
+
+## 工具
+
+* [shell](./tool/shell.md)
+* [tproxy](./tool/tproxy.md)
+
 
 
 

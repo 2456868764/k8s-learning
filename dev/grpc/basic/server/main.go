@@ -3,7 +3,7 @@ package main
 import (
 	"net"
 
-	pb "github.com/2456868764/k8s-learning/grpc/basic/ecommerce"
+	pb "github.com/2456868764/k8s-learning/grpc/basic/order"
 	"google.golang.org/grpc"
 )
 
@@ -12,7 +12,7 @@ func main() {
 
 	pb.RegisterOrderManagementServer(s, &OrderManagementImpl{})
 
-	lit, err := net.Listen("tcp", ":8009")
+	lit, err := net.Listen("tcp", ":9009")
 	if err != nil {
 		panic(err)
 	}

@@ -309,5 +309,12 @@ func init() {
 
 ```
 
+3. 启动时候
+
+```shell
+utilfeature.DefaultMutableFeatureGate.AddFlag(cmd.Flags())
+```
+
+
 
 
