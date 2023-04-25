@@ -15,6 +15,7 @@ type Response struct {
 	Url      string            `json:"url"`
 	Envs     map[string]string `json:"envs"`
 	HostName string            `json:"host_name"`
+	Body     string            `json:"body"`
 }
 
 func NewResponseFromContext(c *gin.Context) Response {
@@ -44,6 +45,11 @@ func NewResponseFromContext(c *gin.Context) Response {
 	response.Origin = c.Request.Header.Get("Origin")
 	response.Envs = getAllEnvs()
 	response.HostName = getHostName()
+
+	var bodyBytes []byte // 我们需要的body内容
+	// 从原有Request.Body读取
+	bodyBytes, _ = c.GetRawData()
+	response.Body = string(bodyBytes)
 	return response
 }
 

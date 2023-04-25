@@ -77,7 +77,7 @@ brew install envoy
 8. 验证 yaml
 
 ```shell
-envoy --mode validate -c ./envoy.yaml
+envoy --mode validate -c ./envoy.yaml  -l debug
 ```
 
 # Envoy核心功能
