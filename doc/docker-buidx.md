@@ -15,7 +15,7 @@ buildx 和 docker build 命令的使用体验基本一致，还支持 build 常�
 
 docker buildx 通过 builder 实例对象来管理构建配置和节点，命令行将构建任务发送至 builder 实例，再由 builder 指派给符合条件的节点执行。我们可以基于同一个 docker 服务程序创建多个 builder 实例，提供给不同的项目使用以隔离各个项目的配置，也可以为一组远程 docker 节点创建一个 builder 实例组成构建阵列，并在不同阵列之间快速切换。
 
-使用 docker buildx create 命令可以创建 builder 实例，这将以当前使用的 docker 服务为节点创建一个新的 builder 实例。要使用一个远程节点，可以在创建示例时通过 DOCKER_HOST 环境变量指定远程端口或提前切换到远程节点的 docker context。下面以远程节点创建一个新的 builder 实例并通过命令行选项指定其驱动、目标平台和实例名称：
+使用 docker buildx create 命令可以创建 builder 实例，这将以当前使用的 docker 服务为节点创建一个新的 builder 实例。要使用一个远程节点，可以在创建示例时通过 DOCKER_HOST 环境变量指定远程端口或提前切换到远程节点的 docker context。
 
 ```shell
 base) ➜  k8s-learning git:(main) ✗ docker buildx create --help

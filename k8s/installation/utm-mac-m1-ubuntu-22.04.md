@@ -281,9 +281,10 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
                                              https://kubernetes.io/docs/concepts/cluster-administration/addons/
 
                                              Then you can join any number of worker nodes by running the following on each as root:
-kubeadm join 192.168.64.16:6443 --token 9utkgi.cl8z733pzzf8lefy \
---discovery-token-ca-cert-hash sha256:fc67648936f59c4a904f88df2334046d422f3d5bf1bcb2598127dd65d875c0a1 
+  Then you can join any number of worker nodes by running the following on each as root:
 
+  kubeadm join 192.168.64.16:6443 --token 5t0gju.ip6zwnsfr54upidy \
+--discovery-token-ca-cert-hash sha256:7f68b6feb453397d34be08b8a44aefd24568ad816108e6824760186a29f94716 
 ```
 
 ### install calico 
@@ -301,6 +302,12 @@ cidr: 192.168.0.0/16  => cidr: 10.10.0.0/16
 ### watch calico
 ```shell
  watch kubectl get pods -n calico-system
+```
+
+### check installation
+
+```shell
+ kubectl apply -f busybox-deploy.yaml
 ```
 
 ### Reference
