@@ -95,7 +95,7 @@
   * [envoy 认证机制](./istio/envoy_tls.md)
   * [envoy Filter]
 * istio
-  * [isito 架构](./istio/istio_arch.md)
+  * [istio 架构](./istio/istio_arch.md)
 
 
 ## 工具
