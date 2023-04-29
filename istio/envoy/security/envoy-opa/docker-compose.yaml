@@ -2,7 +2,7 @@ version: "3"
 services:
 
   opa:
-    image: openpolicyagent/opa:latest-istio
+    image: openpolicyagent/opa:latest-istio-1.17.2
     volumes:
     - ./opa/policies:/policies
     - ./opa/config:/config

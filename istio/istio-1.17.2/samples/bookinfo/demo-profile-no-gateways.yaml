@@ -1,0 +1,12 @@
+# IOP configuration used to install the demo profile without gateways.
+apiVersion: install.istio-1.17.2.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: demo
+  components:
+    ingressGateways:
+    - name: istio-1.17.2-ingressgateway
+      enabled: false
+    egressGateways:
+    - name: istio-1.17.2-egressgateway
+      enabled: false

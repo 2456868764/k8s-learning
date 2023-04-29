@@ -1,0 +1,21 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# DO NOT EDIT!
+# THIS IS A LEGACY CHART HERE FOR BACKCOMPAT
+# UPDATED CHART AT manifests/charts/istio-1.17.2-control/istio-1.17.2-discovery
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: istiod-{{ .Values.global.istioNamespace }}
+  namespace: {{ .Values.global.istioNamespace }}
+  labels:
+    app: istiod
+    release: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: istiod-{{ .Values.global.istioNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: istiod-service-account
+    namespace: {{ .Values.global.istioNamespace }}

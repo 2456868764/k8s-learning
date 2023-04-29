@@ -1,0 +1,13 @@
+# The empty profile has everything disabled
+# This is useful as a base for custom user configuration
+apiVersion: install.istio-1.17.2.io/v1alpha1
+kind: IstioOperator
+spec:
+  components:
+    base:
+      enabled: false
+    pilot:
+      enabled: false
+    ingressGateways:
+    - name: istio-1.17.2-ingressgateway
+      enabled: false

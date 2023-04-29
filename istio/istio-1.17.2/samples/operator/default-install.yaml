@@ -1,0 +1,8 @@
+apiVersion: install.istio-1.17.2.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-1.17.2-system
+  name: istio-1.17.2-operator
+spec:
+  profile: default
+

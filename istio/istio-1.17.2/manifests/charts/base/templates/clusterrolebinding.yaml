@@ -1,0 +1,37 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# DO NOT EDIT!
+# THIS IS A LEGACY CHART HERE FOR BACKCOMPAT
+# UPDATED CHART AT manifests/charts/istio-1.17.2-control/istio-1.17.2-discovery
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istio-1.17.2-reader-{{ .Values.global.istioNamespace }}
+  labels:
+    app: istio-1.17.2-reader
+    release: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istio-1.17.2-reader-{{ .Values.global.istioNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: istio-1.17.2-reader-service-account
+    namespace: {{ .Values.global.istioNamespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istiod-{{ .Values.global.istioNamespace }}
+  labels:
+    app: istiod
+    release: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istiod-{{ .Values.global.istioNamespace }}
+subjects:
+  - kind: ServiceAccount
+    name: istiod-service-account
+    namespace: {{ .Values.global.istioNamespace }}
+---

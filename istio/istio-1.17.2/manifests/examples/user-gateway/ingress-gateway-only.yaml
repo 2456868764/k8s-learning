@@ -1,0 +1,8 @@
+apiVersion: install.istio-1.17.2.io/v1alpha1
+kind: IstioOperator
+spec:
+  profile: empty
+  components:
+    ingressGateways:
+      - enabled: true
+        namespace: my-namespace
