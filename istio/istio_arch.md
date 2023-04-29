@@ -63,7 +63,7 @@ $ kubectl apply -f samples/addons/kaili.yaml
 $ kubectl apply -f samples/addons/prometheus.yaml
 ```
 
-6. 安装 httpbin 测试
+## 安装 httpbin 测试
 
 - Start the httpbin service inside the Istio service mesh:
     ```bash
