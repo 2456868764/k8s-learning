@@ -74,7 +74,7 @@
 
 ## GitOps
 * harbor
-* [helm](./helm/helm.md)
+* [helm](./helm/README.md)
 * kustomize
 * ArgoCD
 
