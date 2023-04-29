@@ -12,7 +12,7 @@
 * containerd & Runc
 
 ### 2.k8s安装
-
+* [Apple M1/M2 安装 k8s 1.27](./k8s/installation/utm-mac-m1-ubuntu-22.04.md)
 
 ### 3.控制面
 * k8s架构和设计原则
