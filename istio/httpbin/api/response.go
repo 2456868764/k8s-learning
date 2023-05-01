@@ -68,11 +68,23 @@ func getAllEnvs() map[string]string {
 }
 
 func getHostName() string {
+	return getStringEnv("POD_NAME", getDefaultHostName())
+}
+
+func getDefaultHostName() string {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return ""
 	}
 	return hostname
+}
+func getStringEnv(name string, defvalue string) string {
+	val, ex := os.LookupEnv(name)
+	if ex {
+		return val
+	} else {
+		return defvalue
+	}
 }
 
 func FileExisted(path string) bool {
@@ -84,5 +96,4 @@ func FileExisted(path string) bool {
 		return true
 	}
 	return true
-
 }

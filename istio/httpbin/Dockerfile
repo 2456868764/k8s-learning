@@ -1,10 +1,12 @@
 # Build the manager binary
-FROM golang:1.19.4-alpine3.16 as builder
+FROM golang:1.20.1-alpine3.17 as builder
+
+# Build Args
+ARG TARGETOS
+ARG TARGETARCH
 ARG LDFLAGS
 ARG PKGNAME
 ARG BUILD
-ENV GO111MODULE=on \
-    CGO_ENABLED=0
 WORKDIR /app
 
 # Copy the Go Modules manifests
@@ -23,11 +25,11 @@ COPY cmd cmd/
 
 # Build
 RUN env
-RUN go build -ldflags="${LDFLAGS}" -a -o httpbin cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -a -o httpbin cmd/main.go
 
-FROM alpine:3.15.3
+FROM alpine:3.17
 WORKDIR /app
 ARG PKGNAME
-EXPOSE 8080
+EXPOSE 80
 COPY --from=builder /app/httpbin .
 CMD ["./httpbin"]

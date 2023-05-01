@@ -19,9 +19,12 @@ REGISTRY_USER_NAME?=""
 REGISTRY_PASSWORD?=""
 
 # Image URL to use all building/pushing image targets
-HTTPBIN_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/httpbin:envoy"
+HTTPBIN_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/httpbin:${GIT_VERSION}"
 
 HTTPBIN_SIDECAR_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/httpbin:sidecar"
+
+## docker buildx support platform
+PLATFORMS ?= linux/arm64,linux/amd64
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -109,3 +112,14 @@ ifneq ($(REGISTRY_USER_NAME), "")
 	docker login -u $(REGISTRY_USER_NAME) -p $(REGISTRY_PASSWORD) ${REGISTRY}
 endif
 	docker push ${HTTPBIN_SIDECAR_IMG}
+
+
+.PHONY: image-buildx
+image-buildx:  ## Build and push docker image for the httpbin for cross-platform support
+	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	- docker buildx create --name project-httpbin-builder
+	docker buildx use project-httpbin-builder
+	- docker buildx build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=httpbin  --push --platform=$(PLATFORMS) --tag ${HTTPBIN_IMG} -f Dockerfile.cross .
+	- docker buildx rm project-httpbin-builder
+	rm Dockerfile.cross

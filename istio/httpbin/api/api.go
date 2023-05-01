@@ -31,6 +31,5 @@ func Healthz(c *gin.Context) {
 		c.JSON(http.StatusOK, "healthz")
 		return
 	}
-
 	c.JSON(http.StatusNotFound, "not healthz")
 }

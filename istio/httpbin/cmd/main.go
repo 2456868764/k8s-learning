@@ -9,11 +9,9 @@ func main() {
 	r := gin.Default()
 	r.GET("/", api.Anything)
 	r.POST("/", api.Anything)
-	r.POST("/graphql", api.Anything)
 	r.POST("/api", api.Anything)
-	r.GET("/graphql", api.Anything)
 	r.GET("/hostname", api.HostName)
 	r.GET("/headers", api.Headers)
 	r.GET("/healthz", api.Healthz)
-	r.Run(":8080")
+	r.Run(":80")
 }
