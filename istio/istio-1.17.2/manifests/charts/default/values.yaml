@@ -1,6 +1,6 @@
 global:
   # Used to locate istiod.
-  istioNamespace: "istio-1.17.2-system"
+  istioNamespace: "istio-system"
 
 base:
   # Validation webhook configuration url

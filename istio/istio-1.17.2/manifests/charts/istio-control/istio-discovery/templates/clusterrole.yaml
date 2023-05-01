@@ -17,22 +17,22 @@ rules:
     resources: ["validatingwebhookconfigurations"]
     verbs: ["get", "list", "watch", "update"]
 
-  # istio-1.17.2 configuration
+  # istio configuration
   # removing CRD permissions can break older versions of Istio running alongside this control plane (https://github.com/istio/istio/issues/29382)
   # please proceed with caution
-  - apiGroups: ["config.istio-1.17.2.io", "security.istio-1.17.2.io", "networking.istio-1.17.2.io", "authentication.istio-1.17.2.io", "rbac.istio-1.17.2.io", "telemetry.istio-1.17.2.io", "extensions.istio-1.17.2.io"]
+  - apiGroups: ["config.istio.io", "security.istio.io", "networking.istio.io", "authentication.istio.io", "rbac.istio.io", "telemetry.istio.io", "extensions.istio.io"]
     verbs: ["get", "watch", "list"]
     resources: ["*"]
 {{- if .Values.global.istiod.enableAnalysis }}
-  - apiGroups: ["config.istio-1.17.2.io", "security.istio-1.17.2.io", "networking.istio-1.17.2.io", "authentication.istio-1.17.2.io", "rbac.istio-1.17.2.io", "telemetry.istio-1.17.2.io", "extensions.istio-1.17.2.io"]
+  - apiGroups: ["config.istio.io", "security.istio.io", "networking.istio.io", "authentication.istio.io", "rbac.istio.io", "telemetry.istio.io", "extensions.istio.io"]
     verbs: ["update"]
     # TODO: should be on just */status but wildcard is not supported
     resources: ["*"]
 {{- end }}
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
     resources: [ "workloadentries" ]
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
     resources: [ "workloadentries/status" ]
 

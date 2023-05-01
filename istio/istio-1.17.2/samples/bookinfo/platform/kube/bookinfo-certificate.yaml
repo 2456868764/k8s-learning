@@ -3,13 +3,13 @@ apiVersion: certmanager.k8s.io/v1alpha1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   acme:
     # The ACME server URL
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     # Email address used for ACME registration
-    email: stage@istio-1.17.2.io
+    email: stage@istio.io
     # Name of a secret used to store the ACME account private key
     privateKeySecretRef:
       name: letsencrypt-staging
@@ -19,10 +19,10 @@ spec:
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
-  name: istio-1.17.2-ingressgateway-certs
-  namespace: istio-1.17.2-system
+  name: istio-ingressgateway-certs
+  namespace: istio-system
 spec:
-  secretName: istio-1.17.2-ingressgateway-certs
+  secretName: istio-ingressgateway-certs
   issuerRef:
     name: letsencrypt-staging
     kind: ClusterIssuer

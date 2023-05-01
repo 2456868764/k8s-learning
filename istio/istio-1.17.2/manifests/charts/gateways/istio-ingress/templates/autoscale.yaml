@@ -1,4 +1,4 @@
-{{ $gateway := index .Values "gateways" "istio-1.17.2-ingressgateway" }}
+{{ $gateway := index .Values "gateways" "istio-ingressgateway" }}
 {{- if and $gateway.autoscaleEnabled $gateway.autoscaleMin $gateway.autoscaleMax }}
 {{- if not .Values.global.autoscalingv2API }}
 apiVersion: autoscaling/v2beta1

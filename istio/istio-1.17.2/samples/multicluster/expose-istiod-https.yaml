@@ -1,4 +1,4 @@
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: istiod-gateway
@@ -29,7 +29,7 @@ spec:
       # use a valid gateway host and domain for istiod
       - "ISTIOD-HOST.DOMAIN"
 ---
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: istiod-vs
@@ -44,23 +44,23 @@ spec:
     - port: 15012
     route:
     - destination:
-        host: istiod.istio-1.17.2-system.svc.cluster.local
+        host: istiod.istio-system.svc.cluster.local
         port:
           number: 15012
   - match:
     - port: 15017
     route:
     - destination:
-        host: istiod.istio-1.17.2-system.svc.cluster.local
+        host: istiod.istio-system.svc.cluster.local
         port:
           number: 443
 ---
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: istiod-dr
 spec:
-  host: istiod.istio-1.17.2-system.svc.cluster.local
+  host: istiod.istio-system.svc.cluster.local
   trafficPolicy:
     portLevelSettings:
     - port:

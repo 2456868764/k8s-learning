@@ -2,35 +2,35 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: istio-1.17.2-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
+  name: istio-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
 rules:
-# istio-1.17.2 groups
+# istio groups
 - apiGroups:
-  - authentication.istio-1.17.2.io
+  - authentication.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - config.istio-1.17.2.io
+  - config.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - install.istio-1.17.2.io
+  - install.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - networking.istio-1.17.2.io
+  - networking.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - security.istio-1.17.2.io
+  - security.istio.io
   resources:
   - '*'
   verbs:

@@ -24,8 +24,8 @@ If you don't have [automatic sidecar injection](https://istio.io/docs/setup/addi
 set in your cluster you will need to manually inject it to the services instead:
 
 ```bash
-istioctl kube-inject -f example-app.yaml -o example-app-istio-1.17.2.yaml
-kubectl apply -f example-app-istio-1.17.2.yaml
+istioctl kube-inject -f example-app.yaml -o example-app-istio.yaml
+kubectl apply -f example-app-istio.yaml
 ```
 
 ## Checking the Bootstrap Configuration

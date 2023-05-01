@@ -78,7 +78,7 @@ Istio has strong integration with certmanager.  Some operators may want to keep 
 CRDs in place and not have Istio modify them.  In this case, it is necessary to apply CRD files individually.
 
 ```bash
-kubectl apply -k github.com/istio-1.17.2/installer/base
+kubectl apply -k github.com/istio/installer/base
 ```
 
 or
@@ -101,7 +101,7 @@ ISTIO_CNI_ARGS=
 if [[ "${ISTIO_CLUSTER_ISGKE}" == "true" ]]; then
     ISTIO_CNI_ARGS="--set cni.cniBinDir=/home/kubernetes/bin"
 fi
-iop kube-system istio-1.17.2-cni $IBASE/istio-1.17.2-cni/ ${ISTIO_CNI_ARGS}
+iop kube-system istio-cni $IBASE/istio-cni/ ${ISTIO_CNI_ARGS}
 ```
 
 TODO. It is possible to add Istio-CNI later, and gradually migrate.
@@ -112,13 +112,13 @@ This can run in any cluster. A mesh should have at least one cluster should run 
 and it is recommended to have Pilot running in each region and in multiple availability zones for multi cluster.
 
 ```bash
-iop istio-1.17.2-control istio-1.17.2-discovery $IBASE/istio-1.17.2-control/istio-1.17.2-discovery \
-            --set global.istioNamespace=istio-1.17.2-system
+iop istio-control istio-discovery $IBASE/istio-control/istio-discovery \
+            --set global.istioNamespace=istio-system
 
-# Second istio-1.17.2-discovery, using master version of istio-1.17.2
-TAG=latest HUB=gcr.io/istio-1.17.2-testing iop istio-1.17.2-master istio-1.17.2-discovery-master $IBASE/istio-1.17.2-control/istio-1.17.2-discovery \
+# Second istio-discovery, using master version of istio
+TAG=latest HUB=gcr.io/istio-testing iop istio-master istio-discovery-master $IBASE/istio-control/istio-discovery \
             --set policy.enable=false \
-            --set global.istioNamespace=istio-1.17.2-master
+            --set global.istioNamespace=istio-master
 ```
 
 ### Gateways

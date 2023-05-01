@@ -1,4 +1,4 @@
-{{- $gateway := index .Values "gateways" "istio-1.17.2-ingressgateway" }}
+{{- $gateway := index .Values "gateways" "istio-ingressgateway" }}
 {{- if eq $gateway.injectionTemplate "" }}
 apiVersion: apps/v1
 kind: Deployment
@@ -28,9 +28,9 @@ spec:
     metadata:
       labels:
 {{ $gateway.labels | toYaml | indent 8 }}
-{{- if eq .Release.Namespace "istio-1.17.2-system"}}
+{{- if eq .Release.Namespace "istio-system"}}
         heritage: Tiller
-        release: istio-1.17.2
+        release: istio
         chart: gateways
 {{- end }}
         service.istio.io/canonical-name: {{ $gateway.name }}
@@ -80,7 +80,7 @@ spec:
             - /bin/sh
           args:
             - -c
-            - sysctl -w kernel.core_pattern=/var/lib/istio-1.17.2/data/core.proxy && ulimit -c unlimited
+            - sysctl -w kernel.core_pattern=/var/lib/istio/data/core.proxy && ulimit -c unlimited
           securityContext:
             runAsUser: 0
             runAsGroup: 0
@@ -88,7 +88,7 @@ spec:
             privileged: true
 {{- end }}
       containers:
-        - name: istio-1.17.2-proxy
+        - name: istio-proxy
 {{- if contains "/" .Values.global.proxy.image }}
           image: "{{ .Values.global.proxy.image }}"
 {{- else }}
@@ -235,29 +235,29 @@ spec:
             mountPath: /var/run/secrets/credential-uds
           - name: workload-certs
             mountPath: /var/run/secrets/workload-spiffe-credentials
-          - name: istio-1.17.2-envoy
-            mountPath: /etc/istio-1.17.2/proxy
+          - name: istio-envoy
+            mountPath: /etc/istio/proxy
           - name: config-volume
-            mountPath: /etc/istio-1.17.2/config
+            mountPath: /etc/istio/config
 {{- if eq .Values.global.pilotCertProvider "istiod" }}
-          - mountPath: /var/run/secrets/istio-1.17.2
+          - mountPath: /var/run/secrets/istio
             name: istiod-ca-cert
 {{- end }}
 {{- if eq .Values.global.jwtPolicy "third-party-jwt" }}
-          - name: istio-1.17.2-token
+          - name: istio-token
             mountPath: /var/run/secrets/tokens
             readOnly: true
 {{- end }}
           {{- if .Values.global.mountMtlsCerts }}
           # Use the key and cert mounted to /etc/certs/ for the in-cluster mTLS communications.
-          - name: istio-1.17.2-certs
+          - name: istio-certs
             mountPath: /etc/certs
             readOnly: true
           {{- end }}
-          - mountPath: /var/lib/istio-1.17.2/data
-            name: istio-1.17.2-data
+          - mountPath: /var/lib/istio/data
+            name: istio-data
           - name: podinfo
-            mountPath: /etc/istio-1.17.2/pod
+            mountPath: /etc/istio/pod
           {{- range $gateway.secretVolumes }}
           - name: {{ .name }}
             mountPath: {{ .mountPath | quote }}
@@ -283,7 +283,7 @@ spec:
 {{- if eq .Values.global.pilotCertProvider "istiod" }}
       - name: istiod-ca-cert
         configMap:
-          name: istio-1.17.2-ca-root-cert
+          name: istio-ca-root-cert
 {{- end }}
       - name: podinfo
         downwardAPI:
@@ -294,29 +294,29 @@ spec:
             - path: "annotations"
               fieldRef:
                 fieldPath: metadata.annotations
-      - name: istio-1.17.2-envoy
+      - name: istio-envoy
         emptyDir: {}
-      - name: istio-1.17.2-data
+      - name: istio-data
         emptyDir: {}
 {{- if eq .Values.global.jwtPolicy "third-party-jwt" }}
-      - name: istio-1.17.2-token
+      - name: istio-token
         projected:
           sources:
           - serviceAccountToken:
-              path: istio-1.17.2-token
+              path: istio-token
               expirationSeconds: 43200
               audience: {{ .Values.global.sds.token.aud }}
 {{- end }}
       {{- if .Values.global.mountMtlsCerts }}
       # Use the key and cert mounted to /etc/certs/ for the in-cluster mTLS communications.
-      - name: istio-1.17.2-certs
+      - name: istio-certs
         secret:
-          secretName: istio-1.17.2.istio-1.17.2-ingressgateway-service-account
+          secretName: istio.istio-ingressgateway-service-account
           optional: true
       {{- end }}
       - name: config-volume
         configMap:
-          name: istio-1.17.2{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
+          name: istio{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
           optional: true
       {{- range $gateway.secretVolumes }}
       - name: {{ .name }}

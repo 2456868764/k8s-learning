@@ -91,8 +91,8 @@ For a smooth migration, the resource names and `Deployment.spec.selector` labels
 If you install with `helm install istio-gateway istio/gateway`, resources will be named `istio-gateway` and the `selector` labels set to:
 
 ```yaml
-app: istio-1.17.2-gateway
-istio: gateway # the release name with leading istio-1.17.2- prefix stripped
+app: istio-gateway
+istio: gateway # the release name with leading istio- prefix stripped
 ```
 
 If your existing installation doesn't follow these names, you can override them. For example, if you have resources named `my-custom-gateway` with `selector` labels
@@ -102,7 +102,7 @@ If your existing installation doesn't follow these names, you can override them.
 name: my-custom-gateway # Override the name to match existing resources
 labels:
   app: "" # Unset default app selector label
-  istio: ingressgateway # override default istio-1.17.2 selector label
+  istio: ingressgateway # override default istio selector label
   foo: bar # Add the existing custom selector label
 ```
 

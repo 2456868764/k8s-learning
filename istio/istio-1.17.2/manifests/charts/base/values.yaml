@@ -6,7 +6,7 @@ global:
   imagePullSecrets: []
 
   # Used to locate istiod.
-  istioNamespace: istio-1.17.2-system
+  istioNamespace: istio-system
 
   istiod:
     enableAnalysis: false
@@ -23,7 +23,7 @@ base:
   # For example: https://$remotePilotAddress:15017/validate
   validationURL: ""
 
-  # For istioctl usage to disable istio-1.17.2 config crds in base
+  # For istioctl usage to disable istio config crds in base
   enableIstioConfigCRDs: true
 
 defaultRevision: "default"

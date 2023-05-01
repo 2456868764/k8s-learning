@@ -5,12 +5,12 @@ cni:
   image: install-cni
   pullPolicy: ""
 
-  # Configuration log level of istio-1.17.2-cni binary
-  # by default istio-1.17.2-cni send all logs to UDS server
+  # Configuration log level of istio-cni binary
+  # by default istio-cni send all logs to UDS server
   # if want to see them you need change global.logging.level with cni:debug
   logLevel: debug
 
-  # Configuration file to insert istio-1.17.2-cni plugin configuration
+  # Configuration file to insert istio-cni plugin configuration
   # by default this will be the first file found in the cni-conf-dir
   # Example
   # cniConfFileName: 10-calico.conflist
@@ -22,15 +22,15 @@ cni:
   cniConfFileName: ""
 
   excludeNamespaces:
-    - istio-1.17.2-system
+    - istio-system
     - kube-system
 
   # Custom annotations on pod level, if you need them
   podAnnotations: {}
 
   # If this value is set a RoleBinding will be created
-  # in the same namespace as the istio-1.17.2-cni DaemonSet is created.
-  # This can be used to bind a preexisting ClusterRole to the istio-1.17.2/cni ServiceAccount
+  # in the same namespace as the istio-cni DaemonSet is created.
+  # This can be used to bind a preexisting ClusterRole to the istio/cni ServiceAccount
   # e.g. if you use PodSecurityPolicies
   psp_cluster_role: ""
 
@@ -38,7 +38,7 @@ cni:
   # Some k8s flavors (e.g. OpenShift) do not support the chain approach, set to false if this is the case
   chained: true
 
-  # Allow the istio-1.17.2-cni container to run in privileged mode, needed for some platforms (e.g. OpenShift)
+  # Allow the istio-cni container to run in privileged mode, needed for some platforms (e.g. OpenShift)
   privileged: false
 
   repair:
@@ -49,9 +49,9 @@ cni:
     labelPods: true
     deletePods: true
 
-    initContainerName: "istio-1.17.2-validation"
+    initContainerName: "istio-validation"
 
-    brokenPodLabelKey: "cni.istio-1.17.2.io/uninitialized"
+    brokenPodLabelKey: "cni.istio.io/uninitialized"
     brokenPodLabelValue: "true"
 
   # Set to `type: RuntimeDefault` to use the default profile if available.
@@ -78,9 +78,9 @@ ownerName: ""
 
 global:
   # Default hub for Istio images.
-  # Releases are published to docker hub under 'istio-1.17.2' project.
+  # Releases are published to docker hub under 'istio' project.
   # Dev builds from prow are on gcr.io
-  hub: docker.io/istio-1.17.2
+  hub: docker.io/istio
 
   # Default tag for Istio images.
   tag: 1.17.2
@@ -93,7 +93,7 @@ global:
   # Default behavior: latest images will be Always else IfNotPresent.
   imagePullPolicy: ""
 
-  # change cni scope level to control logging out of istio-1.17.2-cni-node DaemonSet
+  # change cni scope level to control logging out of istio-cni-node DaemonSet
   logging:
     level: default:info,cni:info
 

@@ -1,8 +1,8 @@
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: filter-ratelimit
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   workloadSelector:
     # select by label in the same namespace
@@ -55,11 +55,11 @@ spec:
                       address: ratelimit.default.svc.cluster.local
                       port_value: 8081
 ---
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: filter-ratelimit-svc
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   workloadSelector:
     labels:

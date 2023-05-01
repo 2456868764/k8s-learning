@@ -10,7 +10,7 @@ metadata:
     istio: istiod
     istio.io/rev: {{ .Values.defaultRevision }}
 webhooks:
-  - name: validation.istio-1.17.2.io
+  - name: validation.istio.io
     clientConfig:
       {{- if .Values.base.validationURL }}
       url: {{ .Values.base.validationURL }}
@@ -29,10 +29,10 @@ webhooks:
           - CREATE
           - UPDATE
         apiGroups:
-          - security.istio-1.17.2.io
-          - networking.istio-1.17.2.io
-          - telemetry.istio-1.17.2.io
-          - extensions.istio-1.17.2.io
+          - security.istio.io
+          - networking.istio.io
+          - telemetry.istio.io
+          - extensions.istio.io
           {{- if .Values.base.validateGateway }}
           - gateway.networking.k8s.io
           {{- end }}

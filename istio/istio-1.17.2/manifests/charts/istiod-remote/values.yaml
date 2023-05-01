@@ -70,11 +70,11 @@ sidecarInjectorWebhook:
   # The PSP controller would add corresponding annotations to the pod spec for each container. However, this happens before
   # the inject adds additional containers, so we must specify them explicitly here. With the above example, we could specify:
   # injectedAnnotations:
-  #   container.apparmor.security.beta.kubernetes.io/istio-1.17.2-init: runtime/default
-  #   container.apparmor.security.beta.kubernetes.io/istio-1.17.2-proxy: runtime/default
+  #   container.apparmor.security.beta.kubernetes.io/istio-init: runtime/default
+  #   container.apparmor.security.beta.kubernetes.io/istio-proxy: runtime/default
   injectedAnnotations: {}
   # This enables injection of sidecar in all namespaces,
-  # with the exception of namespaces with "istio-1.17.2-injection:disabled" annotation
+  # with the exception of namespaces with "istio-injection:disabled" annotation
   # Only one environment should have this enabled.
   enableNamespacesByDefault: false
   rewriteAppHTTPProbe: true
@@ -86,7 +86,7 @@ sidecarInjectorWebhook:
   #       labels:
   #         hello: world
   #
-  # Then starting a pod with the `inject.istio-1.17.2.io/templates: hello` annotation, will result in the pod
+  # Then starting a pod with the `inject.istio.io/templates: hello` annotation, will result in the pod
   # being injected with the hello=world labels.
   # This is intended for advanced configuration only; most users should use the built in template
   templates: {}
@@ -157,17 +157,17 @@ revision: ""
 revisionTags: []
 # For Helm compatibility.
 ownerName: ""
-# meshConfig defines runtime configuration of components, including Istiod and istio-1.17.2-agent behavior
+# meshConfig defines runtime configuration of components, including Istiod and istio-agent behavior
 # See https://istio.io/docs/reference/config/istio.mesh.v1alpha1/ for all available options
 meshConfig:
   enablePrometheusMerge: true
 global:
   # Used to locate istiod.
-  istioNamespace: istio-1.17.2-system
-  # List of cert-signers to allow "approve" action in the istio-1.17.2 cluster role
+  istioNamespace: istio-system
+  # List of cert-signers to allow "approve" action in the istio cluster role
   #
   # certSigners:
-  #   - clusterissuers.cert-manager.io/istio-1.17.2-ca
+  #   - clusterissuers.cert-manager.io/istio-ca
   certSigners: []
   # enable pod disruption budget for the control plane, which is used to
   # ensure Istio control plane components are gradually upgraded or recovered.
@@ -187,9 +187,9 @@ global:
     #   cpu: 100m
     #   memory: 128Mi
   # Default hub for Istio images.
-  # Releases are published to docker hub under 'istio-1.17.2' project.
+  # Releases are published to docker hub under 'istio' project.
   # Dev builds from prow are on gcr.io
-  hub: docker.io/istio-1.17.2
+  hub: docker.io/istio
   # Default tag for Istio images.
   tag: 1.17.2
   # Variant of the image to use.
@@ -209,7 +209,7 @@ global:
   # Enabled by default in master for maximising testing.
   istiod:
     enableAnalysis: false
-  # To output all istio-1.17.2 components logs in json format by adding --log_as_json argument to each container argument
+  # To output all istio components logs in json format by adding --log_as_json argument to each container argument
   logAsJson: false
   # Comma-separated minimum per-scope logging level of messages to output, in the form of <scope>:<level>,<scope>:<level>
   # The control plane has different scopes depending on component, but can configure default log level across all components
@@ -256,12 +256,12 @@ global:
     componentLogLevel: "misc:error"
     # If set, newly injected sidecars will have core dumps enabled.
     enableCoreDump: false
-    # istio-1.17.2 ingress capture allowlist
+    # istio ingress capture allowlist
     # examples:
     #     Redirect only selected ports:            --includeInboundPorts="80,8080"
     excludeInboundPorts: ""
     includeInboundPorts: "*"
-    # istio-1.17.2 egress capture allowlist
+    # istio egress capture allowlist
     # https://istio.io/docs/tasks/traffic-management/egress.html#calling-external-services-directly
     # example: includeIPRanges: "172.30.0.0/16,172.20.0.0/16"
     # would only capture egress traffic on those two IP Ranges, all other outbound traffic would
@@ -273,7 +273,7 @@ global:
     # Log level for proxy, applies to gateways and sidecars.
     # Expected values are: trace|debug|info|warning|error|critical|off
     logLevel: warning
-    #If set to true, istio-1.17.2-proxy container will have privileged securityContext
+    #If set to true, istio-proxy container will have privileged securityContext
     privileged: false
     # The number of successive failed probes before indicating readiness failure.
     readinessFailureThreshold: 30
@@ -365,7 +365,7 @@ global:
   #     endpoints:
   #     - fromRegistry: reg1
   #     gateways:
-  #     - registryServiceName: istio-1.17.2-ingressgateway.istio-1.17.2-system.svc.cluster.local
+  #     - registryServiceName: istio-ingressgateway.istio-system.svc.cluster.local
   #       port: 443
   #
   meshNetworks: {}
@@ -393,7 +393,7 @@ global:
     # When a CSR is sent from Istio Agent to the CA (e.g. Istiod), this aud is to make sure the
     # JWT is intended for the CA.
     token:
-      aud: istio-1.17.2-ca
+      aud: istio-ca
   sts:
     # The service port used by Security Token Service (STS) server to handle token exchange requests.
     # Setting this port to a non-zero value enables STS server.
@@ -422,7 +422,7 @@ global:
       maxNumberOfAttributes: 200
     zipkin:
       # Host:Port for reporting trace data in zipkin format. If not specified, will default to
-      # zipkin service (port 9411) in the same namespace as the other istio-1.17.2 components.
+      # zipkin service (port 9411) in the same namespace as the other istio components.
       address: ""
   # Use the Mesh Control Protocol (MCP) for configuring Istiod. Requires an MCP source.
   useMCP: false
@@ -436,7 +436,7 @@ global:
   # for internal usage only, not to be configured by users.
   autoscalingv2API: true
 base:
-  # For istioctl usage to disable istio-1.17.2 config crds in base
+  # For istioctl usage to disable istio config crds in base
   enableIstioConfigCRDs: true
   # If enabled, gateway-api types will be validated using the standard upstream validation logic.
   # This is an alternative to deploying the standalone validation server the project provides.

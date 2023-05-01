@@ -3,8 +3,8 @@ kind: Service
 metadata:
   namespace: {{.Release.Namespace}}
   labels:
-    name: istio-1.17.2-operator
-  name: istio-1.17.2-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
+    name: istio-operator
+  name: istio-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
 spec:
   ports:
   - name: http-metrics
@@ -12,5 +12,5 @@ spec:
     targetPort: 8383
     protocol: TCP
   selector:
-    name: istio-1.17.2-operator
+    name: istio-operator
 ---

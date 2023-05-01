@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kiali
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     helm.sh/chart: kiali-server-1.63.1
     app: kiali
@@ -21,7 +21,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kiali
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     helm.sh/chart: kiali-server-1.63.1
     app: kiali
@@ -181,10 +181,10 @@ rules:
   - list
   - watch
 - apiGroups:
-  - networking.istio-1.17.2.io
-  - security.istio-1.17.2.io
-  - extensions.istio-1.17.2.io
-  - telemetry.istio-1.17.2.io
+  - networking.istio.io
+  - security.istio.io
+  - extensions.istio.io
+  - telemetry.istio.io
   - gateway.networking.k8s.io
   resources: ["*"]
   verbs:
@@ -277,10 +277,10 @@ rules:
   - watch
   - patch
 - apiGroups:
-  - networking.istio-1.17.2.io
-  - security.istio-1.17.2.io
-  - extensions.istio-1.17.2.io
-  - telemetry.istio-1.17.2.io
+  - networking.istio.io
+  - security.istio.io
+  - extensions.istio.io
+  - telemetry.istio.io
   - gateway.networking.k8s.io 
   resources: ["*"]
   verbs:
@@ -336,7 +336,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kiali
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 ...
 ---
 # Source: kiali-server/templates/role-controlplane.yaml
@@ -344,7 +344,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: kiali-controlplane
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     helm.sh/chart: kiali-server-1.63.1
     app: kiali
@@ -358,7 +358,7 @@ rules:
 - apiGroups: [""]
   resourceNames:
   - cacerts
-  - istio-1.17.2-ca-secret
+  - istio-ca-secret
   resources:
   - secrets
   verbs:
@@ -372,7 +372,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: kiali-controlplane
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     helm.sh/chart: kiali-server-1.63.1
     app: kiali
@@ -389,7 +389,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: kiali
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 ...
 ---
 # Source: kiali-server/templates/service.yaml
@@ -397,7 +397,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kiali
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     helm.sh/chart: kiali-server-1.63.1
     app: kiali
@@ -428,7 +428,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kiali
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     helm.sh/chart: kiali-server-1.63.1
     app: kiali
@@ -538,7 +538,7 @@ spec:
           name: kiali
       - name: kiali-cert
         secret:
-          secretName: istio-1.17.2.kiali-service-account
+          secretName: istio.kiali-service-account
           optional: true
       - name: kiali-secret
         secret:

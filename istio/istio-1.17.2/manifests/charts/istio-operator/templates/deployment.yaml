@@ -2,17 +2,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: {{.Release.Namespace}}
-  name: istio-1.17.2-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
+  name: istio-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
 spec:
   replicas: 1
   revisionHistoryLimit: {{ .Values.deploymentHistory }}
   selector:
     matchLabels:
-      name: istio-1.17.2-operator
+      name: istio-operator
   template:
     metadata:
       labels:
-        name: istio-1.17.2-operator
+        name: istio-operator
         {{- range $key, $val := .Values.podLabels }}
         {{ $key }}: "{{ $val }}"
         {{- end }}
@@ -23,9 +23,9 @@ spec:
 {{ toYaml .Values.podAnnotations | indent 8 }}
     {{- end }}
     spec:
-      serviceAccountName: istio-1.17.2-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
+      serviceAccountName: istio-operator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
       containers:
-        - name: istio-1.17.2-operator
+        - name: istio-operator
           image: {{.Values.hub}}/operator:{{.Values.tag}}
           command:
           - operator

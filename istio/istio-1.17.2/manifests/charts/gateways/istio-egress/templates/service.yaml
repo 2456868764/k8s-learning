@@ -1,4 +1,4 @@
-{{ $gateway := index .Values "gateways" "istio-1.17.2-egressgateway" }}
+{{ $gateway := index .Values "gateways" "istio-egressgateway" }}
 {{- if not $gateway.customService }}
 apiVersion: v1
 kind: Service

@@ -43,7 +43,7 @@ else
 fi
 
 # Process the input arguments. By default, image scanning is disabled.
-PREFIX=istio-1.7.2
+PREFIX=istio
 ENABLE_IMAGE_SCAN=false
 ENABLE_MULTIARCH_IMAGES=false
 echo "$@"
@@ -112,7 +112,7 @@ do
   	docker push "${IMAGE}";
   fi
 
-  # $IMAGE has the following format: istio-1.17.2/examples-bookinfo*:"$v".
+  # $IMAGE has the following format: istio/examples-bookinfo*:"$v".
   # We want to get the sample app name from $IMAGE (the examples-bookinfo* portion)
   # to create the file to store the results of the scan for that image. The first
   # part of the $IMAGE_NAME gets examples-bookinfo*:"$v", and the second part gets

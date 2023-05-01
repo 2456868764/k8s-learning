@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: skywalking-oap
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: skywalking-oap
 spec:
@@ -34,7 +34,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tracing
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: skywalking-oap
 spec:
@@ -57,7 +57,7 @@ metadata:
   labels:
     name: skywalking-oap
   name: skywalking-oap
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   ports:
     - port: 11800
@@ -73,7 +73,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: skywalking-ui
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: skywalking-ui
 spec:
@@ -104,7 +104,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tracing-ui
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: skywalking-ui
 spec:
@@ -123,7 +123,7 @@ metadata:
   labels:
     name: skywalking-ui
   name: skywalking-ui
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   ports:
     - port: 8080

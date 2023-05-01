@@ -1,5 +1,5 @@
 # Deprecated. Use the "remote" profile instead.
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
@@ -8,7 +8,7 @@ spec:
     pilot:
       enabled: false
     ingressGateways:
-    - name: istio-1.17.2-ingressgateway
+    - name: istio-ingressgateway
       enabled: false
     istiodRemote:
       enabled: true

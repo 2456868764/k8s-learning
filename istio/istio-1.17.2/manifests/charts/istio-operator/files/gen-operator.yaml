@@ -1,45 +1,45 @@
 ---
-# Source: istio-1.17.2-operator/templates/service_account.yaml
+# Source: istio-operator/templates/service_account.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: istio-1.17.2-operator
-  name: istio-1.17.2-operator
+  namespace: istio-operator
+  name: istio-operator
 ---
-# Source: istio-1.17.2-operator/templates/clusterrole.yaml
+# Source: istio-operator/templates/clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: istio-1.17.2-operator
+  name: istio-operator
 rules:
-# istio-1.17.2 groups
+# istio groups
 - apiGroups:
-  - authentication.istio-1.17.2.io
+  - authentication.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - config.istio-1.17.2.io
+  - config.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - install.istio-1.17.2.io
+  - install.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - networking.istio-1.17.2.io
+  - networking.istio.io
   resources:
   - '*'
   verbs:
   - '*'
 - apiGroups:
-  - security.istio-1.17.2.io
+  - security.istio.io
   resources:
   - '*'
   verbs:
@@ -124,28 +124,28 @@ rules:
   verbs:
   - '*'
 ---
-# Source: istio-1.17.2-operator/templates/clusterrole_binding.yaml
+# Source: istio-operator/templates/clusterrole_binding.yaml
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: istio-1.17.2-operator
+  name: istio-operator
 subjects:
 - kind: ServiceAccount
-  name: istio-1.17.2-operator
-  namespace: istio-1.17.2-operator
+  name: istio-operator
+  namespace: istio-operator
 roleRef:
   kind: ClusterRole
-  name: istio-1.17.2-operator
+  name: istio-operator
   apiGroup: rbac.authorization.k8s.io
 ---
-# Source: istio-1.17.2-operator/templates/service.yaml
+# Source: istio-operator/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: istio-1.17.2-operator
+  namespace: istio-operator
   labels:
-    name: istio-1.17.2-operator
-  name: istio-1.17.2-operator
+    name: istio-operator
+  name: istio-operator
 spec:
   ports:
   - name: http-metrics
@@ -153,32 +153,32 @@ spec:
     targetPort: 8383
     protocol: TCP
   selector:
-    name: istio-1.17.2-operator
+    name: istio-operator
 ---
-# Source: istio-1.17.2-operator/templates/deployment.yaml
+# Source: istio-operator/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: istio-1.17.2-operator
-  name: istio-1.17.2-operator
+  namespace: istio-operator
+  name: istio-operator
 spec:
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      name: istio-1.17.2-operator
+      name: istio-operator
   template:
     metadata:
       labels:
-        name: istio-1.17.2-operator
+        name: istio-operator
       annotations:
         prometheus.io/port: "15014"
         prometheus.io/scrape: "true"
     spec:
-      serviceAccountName: istio-1.17.2-operator
+      serviceAccountName: istio-operator
       containers:
-        - name: istio-1.17.2-operator
-          image: gcr.io/istio-1.17.2-testing/operator:1.17-dev
+        - name: istio-operator
+          image: gcr.io/istio-testing/operator:1.17-dev
           command:
           - operator
           - server
@@ -203,15 +203,15 @@ spec:
               memory: 128Mi
           env:
             - name: WATCH_NAMESPACE
-              value: "istio-1.17.2-system"
+              value: "istio-system"
             - name: LEADER_ELECTION_NAMESPACE
-              value: "istio-1.17.2-operator"
+              value: "istio-operator"
             - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "istio-1.17.2-operator"
+              value: "istio-operator"
             - name: WAIT_FOR_RESOURCES_TIMEOUT
               value: "300s"
             - name: REVISION

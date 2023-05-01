@@ -2,14 +2,14 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: envoy-stats-monitor
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
-    monitoring: istio-1.17.2-proxies
-    release: istio-1.17.2
+    monitoring: istio-proxies
+    release: istio
 spec:
   selector:
     matchExpressions:
-    - {key: istio-1.17.2-prometheus-ignore, operator: DoesNotExist}
+    - {key: istio-prometheus-ignore, operator: DoesNotExist}
   namespaceSelector:
     any: true
   jobLabel: envoy-stats
@@ -19,7 +19,7 @@ spec:
     relabelings:
     - action: keep
       sourceLabels: [__meta_kubernetes_pod_container_name]
-      regex: "istio-1.17.2-proxy"
+      regex: "istio-proxy"
     - action: keep
       sourceLabels: [__meta_kubernetes_pod_annotationpresent_prometheus_io_scrape]
     - sourceLabels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
@@ -39,17 +39,17 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: istio-1.17.2-component-monitor
-  namespace: istio-1.17.2-system
+  name: istio-component-monitor
+  namespace: istio-system
   labels:
-    monitoring: istio-1.17.2-components
-    release: istio-1.17.2
+    monitoring: istio-components
+    release: istio
 spec:
-  jobLabel: istio-1.17.2
+  jobLabel: istio
   targetLabels: [app]
   selector:
     matchExpressions:
-    - {key: istio-1.17.2, operator: In, values: [pilot]}
+    - {key: istio, operator: In, values: [pilot]}
   namespaceSelector:
     any: true
   endpoints:

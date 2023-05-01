@@ -2,7 +2,7 @@
 ---
 # Note: http stats filter is wasm enabled only in sidecars.
 {{- if .Values.telemetry.v2.prometheus.enabled }}
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stats-filter-1.17{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
@@ -30,7 +30,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -54,7 +54,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -80,7 +80,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -94,7 +94,7 @@ spec:
               {{- end }}
 ---
 # Note: tcp stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stats-filter-1.17{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
@@ -120,7 +120,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -142,7 +142,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -164,7 +164,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -177,7 +177,7 @@ spec:
 ---
 {{- end }}
 {{- if .Values.telemetry.v2.stackdriver.enabled }}
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stackdriver-filter-1.17{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
@@ -206,7 +206,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stackdriver
+          name: istio.stackdriver
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -244,7 +244,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stackdriver
+          name: istio.stackdriver
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -283,7 +283,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stackdriver
+          name: istio.stackdriver
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -308,7 +308,7 @@ spec:
                   code:
                     local: { inline_string: envoy.wasm.null.stackdriver }
 ---
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stackdriver-filter-1.17{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
@@ -335,7 +335,7 @@ spec:
     patch:
       operation: INSERT_BEFORE
       value:
-        name: istio-1.17.2.stackdriver
+        name: istio.stackdriver
         typed_config:
           "@type": type.googleapis.com/udpa.type.v1.TypedStruct
           type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -371,7 +371,7 @@ spec:
     patch:
       operation: INSERT_BEFORE
       value:
-        name: istio-1.17.2.stackdriver
+        name: istio.stackdriver
         typed_config:
           "@type": type.googleapis.com/udpa.type.v1.TypedStruct
           type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -407,7 +407,7 @@ spec:
     patch:
       operation: INSERT_BEFORE
       value:
-        name: istio-1.17.2.stackdriver
+        name: istio.stackdriver
         typed_config:
           "@type": type.googleapis.com/udpa.type.v1.TypedStruct
           type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -432,7 +432,7 @@ spec:
                   local: { inline_string: envoy.wasm.null.stackdriver }
 ---
 {{- if .Values.telemetry.v2.accessLogPolicy.enabled }}
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stackdriver-sampling-accesslog-filter-1.17{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}
@@ -456,11 +456,11 @@ spec:
             filter:
               name: "envoy.filters.network.http_connection_manager"
               subFilter:
-                name: "istio-1.17.2.stackdriver"
+                name: "istio.stackdriver"
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.access_log
+          name: istio.access_log
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm

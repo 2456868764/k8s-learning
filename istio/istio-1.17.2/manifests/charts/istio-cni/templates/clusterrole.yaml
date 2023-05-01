@@ -1,9 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istio-1.17.2-cni
+  name: istio-cni
   labels:
-    app: istio-1.17.2-cni
+    app: istio-cni
     release: {{ .Release.Name }}
     istio.io/rev: {{ .Values.revision | default "default" }}
     install.operator.istio.io/owning-resource: {{ .Values.ownerName | default "unknown" }}
@@ -20,9 +20,9 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istio-1.17.2-cni-repair-role
+  name: istio-cni-repair-role
   labels:
-    app: istio-1.17.2-cni
+    app: istio-cni
     release: {{ .Release.Name }}
     istio.io/rev: {{ .Values.revision | default "default" }}
     install.operator.istio.io/owning-resource: {{ .Values.ownerName | default "unknown" }}
@@ -40,9 +40,9 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istio-1.17.2-cni-taint-role
+  name: istio-cni-taint-role
   labels:
-    app: istio-1.17.2-cni
+    app: istio-cni
     release: {{ .Release.Name }}
     istio.io/rev: {{ .Values.revision | default "default" }}
     install.operator.istio.io/owning-resource: {{ .Values.ownerName | default "unknown" }}

@@ -7,7 +7,7 @@ This sample demonstrates Istio's Open Telemetry ALS support.
 First, create an `otel-collector` backend with simple configuration.
 
 ```bash
-kubectl apply -f otel.yaml -n istio-1.17.2-system
+kubectl apply -f otel.yaml -n istio-system
 ```
 
 With following configuration, otel-collector will create a grpc receiver on port `4317`, and output to stdout. You can find more details from [here](https://github.com/open-telemetry/opentelemetry-collector).
@@ -42,7 +42,7 @@ istioctl install --set profile=demo -y
 Next, add a Telemetry resource that tells Istio to send access logs to the OpenTelemetry collector.
 
 ```bash
-cat <<EOF | kubectl apply -n istio-1.17.2-system -f -
+cat <<EOF | kubectl apply -n istio-system -f -
 apiVersion: telemetry.istio.io/v1alpha1
 kind: Telemetry
 metadata:
@@ -68,12 +68,12 @@ kubectl exec -it $(kubectl get po | grep fortio | awk '{print $1}') -- fortio cu
 Run the following script to checkout ALS output.
 
 ```bash
-kubectl logs $(kubectl get po -n istio-1.7.2-system | grep otel | awk '{print $1}') -n istio-1.17.2-system
+kubectl logs $(kubectl get po -n istio-system | grep otel | awk '{print $1}') -n istio-system
 ```
 
 ## Cleanup
 
 ```bash
-kubectl delete -f otel.yaml -n istio-1.17.2-system
-kubectl delete telemetry mesh-default -n istio-1.17.2-system
+kubectl delete -f otel.yaml -n istio-system
+kubectl delete telemetry mesh-default -n istio-system
 ```

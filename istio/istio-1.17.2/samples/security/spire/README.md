@@ -24,7 +24,7 @@ See [Istio CA Integration with SPIRE](https://istio.io/latest/docs/ops/integrati
 1. Use the configuration profile provided to install Istio (requires istioctl v1.14+):
 
   ```bash
-  $ istioctl install -f istio-1.17.2-spire-config.yaml
+  $ istioctl install -f istio-spire-config.yaml
   ```
 
 1. Deploy the `sleep-spire.yaml` version of the [sleep](/samples/sleep/README.md) service, which injects the custom istio-agent template defined in `istio-spire-config.yaml`.

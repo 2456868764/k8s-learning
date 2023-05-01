@@ -10,7 +10,7 @@ metadata:
     chart: prometheus-13.6.0
     heritage: Helm
   name: prometheus
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   annotations:
     {}
 ---
@@ -25,7 +25,7 @@ metadata:
     chart: prometheus-13.6.0
     heritage: Helm
   name: prometheus
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 data:
   alerting_rules.yml: |
     {}
@@ -360,7 +360,7 @@ rules:
     verbs:
       - get
   - apiGroups:
-    - "networking.istio-1.17.2.io"
+    - "networking.istio.io"
     verbs:
       - get
       - watch
@@ -394,7 +394,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus
-    namespace: istio-1.17.2-system
+    namespace: istio-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -411,7 +411,7 @@ metadata:
     chart: prometheus-13.6.0
     heritage: Helm
   name: prometheus
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   ports:
     - name: http
@@ -436,7 +436,7 @@ metadata:
     chart: prometheus-13.6.0
     heritage: Helm
   name: prometheus
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   selector:
     matchLabels:
@@ -452,7 +452,7 @@ spec:
         proxy.istio.io/config: |  # configure an env variable `OUTPUT_CERTS` to write certificates to the given folder
           proxyMetadata:
             OUTPUT_CERTS: /etc/istio-output-certs
-        sidecar.istio.io/userVolumeMount: '[{"name": "istio-1.17.2-certs", "mountPath": "/etc/istio-1.17.2-output-certs"}]' # mount the shared volume at sidecar proxy
+        sidecar.istio.io/userVolumeMount: '[{"name": "istio-certs", "mountPath": "/etc/istio-output-certs"}]' # mount the shared volume at sidecar proxy
       labels:
         component: "server"
         app: prometheus
@@ -519,7 +519,7 @@ spec:
               subPath: ""
             - name: file-sd-volume
               mountPath: /etc/file_sd
-            - name: istio-1.17.2-certs
+            - name: istio-certs
               mountPath: /etc/prom-certs/
         - name: vm-discovery
           image: "istioecosystem/vm-discovery:latest"
@@ -540,7 +540,7 @@ spec:
           configMap:
             name: file-sd-config
             optional: true
-        - name: istio-1.17.2-certs
+        - name: istio-certs
           emptyDir:
             medium: Memory
         - name: storage-volume

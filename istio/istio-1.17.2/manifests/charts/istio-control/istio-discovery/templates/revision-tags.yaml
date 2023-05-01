@@ -1,4 +1,4 @@
-# Adapted from istio-1.17.2-discovery/templates/mutatingwebhook.yaml
+# Adapted from istio-discovery/templates/mutatingwebhook.yaml
 # Removed paths for legacy and default selectors since a revision tag
 # is inherently created from a specific revision
 {{- $whv := dict
@@ -9,7 +9,7 @@
 {{- define "core" }}
 {{- /* Kubernetes unfortunately requires a unique name for the webhook in some newer versions, so we assign
 a unique prefix to each. */}}
-- name: {{.Prefix}}sidecar-injector.istio-1.17.2.io
+- name: {{.Prefix}}sidecar-injector.istio.io
   clientConfig:
     {{- if .injectionURL }}
     url: "{{ .injectionURL }}"
@@ -33,10 +33,10 @@ a unique prefix to each. */}}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-{{- if eq $.Release.Namespace "istio-1.17.2-system"}}
-  name: istio-1.17.2-revision-tag-{{ $tagName }}
+{{- if eq $.Release.Namespace "istio-system"}}
+  name: istio-revision-tag-{{ $tagName }}
 {{- else }}
-  name: istio-1.17.2-revision-tag-{{ $tagName }}-{{ $.Release.Namespace }}
+  name: istio-revision-tag-{{ $tagName }}-{{ $.Release.Namespace }}
 {{- end }}
   labels:
     istio.io/tag: {{ $tagName }}
@@ -49,51 +49,51 @@ webhooks:
 {{- include "core" (mergeOverwrite (deepCopy $whv) (dict "Prefix" "rev.namespace.") ) }}
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: In
       values:
       - "{{ $tagName }}"
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: NotIn
       values:
       - "false"
 {{- include "core" (mergeOverwrite (deepCopy $whv) (dict "Prefix" "rev.object.") ) }}
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: NotIn
       values:
       - "false"
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: In
       values:
       - "{{ $tagName }}"
 
 {{- /* When the tag is "default" we want to create webhooks for the default revision */}}
-{{- /* These webhooks should be kept in sync with istio-1.17.2-discovery/templates/mutatingwebhook.yaml */}}
+{{- /* These webhooks should be kept in sync with istio-discovery/templates/mutatingwebhook.yaml */}}
 {{- if (eq $tagName "default") }}
 
 {{- /* Case 1: Namespace selector enabled, and object selector is not injected */}}
 {{- include "core" (mergeOverwrite (deepCopy $whv) (dict "Prefix" "namespace.") ) }}
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: In
       values:
       - enabled
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: NotIn
       values:
       - "false"
@@ -102,17 +102,17 @@ webhooks:
 {{- include "core" (mergeOverwrite (deepCopy $whv) (dict "Prefix" "object.") ) }}
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: In
       values:
       - "true"
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
 
 {{- if $.Values.sidecarInjectorWebhook.enableNamespacesByDefault }}
@@ -120,18 +120,18 @@ webhooks:
 {{- include "core" (mergeOverwrite (deepCopy $whv) (dict "Prefix" "auto.") ) }}
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
     - key: "kubernetes.io/metadata.name"
       operator: "NotIn"
       values: ["kube-system","kube-public","kube-node-lease","local-path-storage"]
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: DoesNotExist
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
 {{- end }}
 

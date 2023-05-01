@@ -1,8 +1,8 @@
-# Standalone istio-1.17.2 egress gateway.
+# Standalone istio egress gateway.
 # Should be installed in a separate namespace, to minimize access to config
 gateways:
   istio-egressgateway:
-    name: istio-1.17.2-egressgateway
+    name: istio-egressgateway
     ports:
     - port: 80
       targetPort: 8080
@@ -14,7 +14,7 @@ gateways:
       protocol: TCP
 
     labels:
-      app: istio-1.17.2-egressgateway
+      app: istio-egressgateway
       istio: egressgateway
 
     # Scalability tuning
@@ -40,11 +40,11 @@ gateways:
 
     secretVolumes:
     - name: egressgateway-certs
-      secretName: istio-1.17.2-egressgateway-certs
-      mountPath: /etc/istio-1.17.2/egressgateway-certs
+      secretName: istio-egressgateway-certs
+      mountPath: /etc/istio/egressgateway-certs
     - name: egressgateway-ca-certs
-      secretName: istio-1.17.2-egressgateway-ca-certs
-      mountPath: /etc/istio-1.17.2/egressgateway-ca-certs
+      secretName: istio-egressgateway-ca-certs
+      mountPath: /etc/istio/egressgateway-ca-certs
 
     configVolumes: []
     additionalContainers: []
@@ -141,9 +141,9 @@ global:
   defaultTolerations: []
 
   # Default hub for Istio images.
-  # Releases are published to docker hub under 'istio-1.17.2' project.
+  # Releases are published to docker hub under 'istio' project.
   # Dev builds from prow are on gcr.io
-  hub: docker.io/istio-1.17.2
+  hub: docker.io/istio
 
   # Default tag for Istio images.
   tag: 1.17.2
@@ -160,7 +160,7 @@ global:
   imagePullSecrets: []
   # - private-registry-key
 
-  # To output all istio-1.17.2 components logs in json format by adding --log_as_json argument to each container argument
+  # To output all istio components logs in json format by adding --log_as_json argument to each container argument
   logAsJson: false
 
   # Specify pod scheduling arch(amd64, ppc64le, s390x, arm64) and weight as follows:
@@ -211,7 +211,7 @@ global:
   caAddress: ""
 
   # Used to locate istiod.
-  istioNamespace: istio-1.17.2-system
+  istioNamespace: istio-system
 
   # Configure the policy for validating JWT.
   # Currently, two options are supported: "third-party-jwt" and "first-party-jwt".
@@ -268,7 +268,7 @@ global:
     # When a CSR is sent from Citadel Agent to the CA (e.g. Citadel), this aud is to make sure the
     # JWT is intended for the CA.
     token:
-      aud: istio-1.17.2-ca
+      aud: istio-ca
 
   sts:
     # The service port used by Security Token Service (STS) server to handle token exchange requests.
@@ -291,9 +291,9 @@ meshConfig:
     tracing:
     #      tlsSettings:
     #        mode: DISABLE # DISABLE, SIMPLE, MUTUAL, ISTIO_MUTUAL
-    #        clientCertificate: # example: /etc/istio-1.17.2/tracer/cert-chain.pem
-    #        privateKey:        # example: /etc/istio-1.17.2/tracer/key.pem
-    #        caCertificates:    # example: /etc/istio-1.17.2/tracer/root-cert.pem
+    #        clientCertificate: # example: /etc/istio/tracer/cert-chain.pem
+    #        privateKey:        # example: /etc/istio/tracer/key.pem
+    #        caCertificates:    # example: /etc/istio/tracer/root-cert.pem
     #        sni:               # example: tracer.somedomain
     #        subjectAltNames: []
     # - tracer.somedomain

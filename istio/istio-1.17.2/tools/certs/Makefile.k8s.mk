@@ -42,7 +42,7 @@ k8s-root-cert.pem:
 k8s-root-key.pem:
 	@cat $(cluster)/k8s-root-key.pem > $@
 #------------------------------------------------------------------------
-##<name>-cacerts: generate intermediate certificates for a cluster or VM with <name> signed with istio-1.17.2 root cert from the specified k8s cluster and store them under <name> directory
+##<name>-cacerts: generate intermediate certificates for a cluster or VM with <name> signed with istio root cert from the specified k8s cluster and store them under <name> directory
 .PHONY: %-cacerts
 
 %-cacerts: %/cert-chain.pem

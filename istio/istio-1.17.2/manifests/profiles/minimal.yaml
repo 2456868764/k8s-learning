@@ -1,8 +1,8 @@
 # The minimal profile will install just the core control plane
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
     ingressGateways:
-    - name: istio-1.17.2-ingressgateway
+    - name: istio-ingressgateway
       enabled: false

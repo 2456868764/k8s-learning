@@ -4,13 +4,13 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: istiod
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
-    release: istio-1.17.2
+    release: istio
     istio: pilot
 spec:
   minAvailable: 1
@@ -24,22 +24,22 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 ---
 # Source: istiod/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: istio-1.17.2
-  namespace: istio-1.17.2-system
+  name: istio
+  namespace: istio-system
   labels:
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
-    release: istio-1.17.2
+    release: istio
 data:
 
   # Configuration file for the mesh networks to be used by the Split Horizon EDS.
@@ -60,13 +60,13 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: istio-1.17.2-sidecar-injector
-  namespace: istio-1.17.2-system
+  name: istio-sidecar-injector
+  namespace: istio-system
   labels:
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
-    release: istio-1.17.2
+    release: istio
 data:
 
   values: |-
@@ -1344,10 +1344,10 @@ data:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istiod-clusterrole-istio-1.17.2-system
+  name: istiod-clusterrole-istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 rules:
   # sidecar injection controller
   - apiGroups: ["admissionregistration.k8s.io"]
@@ -1359,16 +1359,16 @@ rules:
     resources: ["validatingwebhookconfigurations"]
     verbs: ["get", "list", "watch", "update"]
 
-  # istio-1.17.2 configuration
+  # istio configuration
   # removing CRD permissions can break older versions of Istio running alongside this control plane (https://github.com/istio/istio/issues/29382)
   # please proceed with caution
-  - apiGroups: ["config.istio-1.17.2.io", "security.istio-1.17.2.io", "networking.istio-1.17.2.io", "authentication.istio-1.17.2.io", "rbac.istio-1.17.2.io", "telemetry.istio-1.17.2.io", "extensions.istio-1.17.2.io"]
+  - apiGroups: ["config.istio.io", "security.istio.io", "networking.istio.io", "authentication.istio.io", "rbac.istio.io", "telemetry.istio.io", "extensions.istio.io"]
     verbs: ["get", "watch", "list"]
     resources: ["*"]
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
     resources: [ "workloadentries" ]
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
     resources: [ "workloadentries/status" ]
 
@@ -1452,10 +1452,10 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istiod-gateway-controller-istio-1.17.2-system
+  name: istiod-gateway-controller-istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 rules:
   - apiGroups: ["apps"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
@@ -1471,23 +1471,23 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istio-1.17.2-reader-clusterrole-istio-1.17.2-system
+  name: istio-reader-clusterrole-istio-system
   labels:
-    app: istio-1.17.2-reader
-    release: istio-1.17.2
+    app: istio-reader
+    release: istio
 rules:
   - apiGroups:
-      - "config.istio-1.17.2.io"
-      - "security.istio-1.17.2.io"
-      - "networking.istio-1.17.2.io"
-      - "authentication.istio-1.17.2.io"
-      - "rbac.istio-1.17.2.io"
+      - "config.istio.io"
+      - "security.istio.io"
+      - "networking.istio.io"
+      - "authentication.istio.io"
+      - "rbac.istio.io"
     resources: ["*"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["endpoints", "pods", "services", "nodes", "replicationcontrollers", "namespaces", "secrets"]
     verbs: ["get", "list", "watch"]
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list" ]
     resources: [ "workloadentries" ]
   - apiGroups: ["apiextensions.k8s.io"]
@@ -1516,73 +1516,73 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: istiod-clusterrole-istio-1.17.2-system
+  name: istiod-clusterrole-istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: istiod-clusterrole-istio-1.17.2-system
+  name: istiod-clusterrole-istio-system
 subjects:
   - kind: ServiceAccount
     name: istiod
-    namespace: istio-1.17.2-system
+    namespace: istio-system
 ---
 # Source: istiod/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: istiod-gateway-controller-istio-1.17.2-system
+  name: istiod-gateway-controller-istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: istiod-gateway-controller-istio-1.17.2-system
+  name: istiod-gateway-controller-istio-system
 subjects:
 - kind: ServiceAccount
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 ---
 # Source: istiod/templates/reader-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: istio-1.17.2-reader-clusterrole-istio-1.17.2-system
+  name: istio-reader-clusterrole-istio-system
   labels:
-    app: istio-1.17.2-reader
-    release: istio-1.17.2
+    app: istio-reader
+    release: istio
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: istio-1.17.2-reader-clusterrole-istio-1.17.2-system
+  name: istio-reader-clusterrole-istio-system
 subjects:
   - kind: ServiceAccount
-    name: istio-1.17.2-reader-service-account
-    namespace: istio-1.17.2-system
+    name: istio-reader-service-account
+    namespace: istio-system
 ---
 # Source: istiod/templates/role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 rules:
 # permissions to verify the webhook is ready and rejecting
 # invalid config. We use --server-dry-run so no config is persisted.
-- apiGroups: ["networking.istio-1.17.2.io"]
+- apiGroups: ["networking.istio.io"]
   verbs: ["create"]
   resources: ["gateways"]
 
 # For storing CA secret
 - apiGroups: [""]
   resources: ["secrets"]
-  # TODO lock this down to istio-1.17.2-ca-cert if not using the DNS cert mesh config
+  # TODO lock this down to istio-ca-cert if not using the DNS cert mesh config
   verbs: ["create", "get", "watch", "list", "update", "delete"]
 
 # For status controller, so it can delete the distribution report configmap
@@ -1595,10 +1595,10 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1606,21 +1606,21 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: istiod
-    namespace: istio-1.17.2-system
+    namespace: istio-system
 ---
 # Source: istiod/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
     app: istiod
     istio: pilot
-    release: istio-1.17.2
+    release: istio
 spec:
   ports:
     - port: 15010
@@ -1647,14 +1647,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: istiod
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
     istio: pilot
-    release: istio-1.17.2
+    release: istio
 spec:
   strategy:
     rollingUpdate:
@@ -1682,7 +1682,7 @@ spec:
         fsGroup: 1337
       containers:
         - name: discovery
-          image: "gcr.io/istio-1.17.2-testing/pilot:latest"
+          image: "gcr.io/istio-testing/pilot:latest"
           args:
           - "discovery"
           - --monitoringAddr=:15014
@@ -1736,7 +1736,7 @@ spec:
           - name: PILOT_ENABLE_PROTOCOL_SNIFFING_FOR_INBOUND
             value: "true"
           - name: ISTIOD_ADDR
-            value: istiod.istio-1.17.2-system.svc:15012
+            value: istiod.istio-system.svc:15012
           - name: PILOT_ENABLE_ANALYSIS
             value: "false"
           - name: CLUSTER_ID
@@ -1755,21 +1755,21 @@ spec:
               drop:
               - ALL
           volumeMounts:
-          - name: istio-1.17.2-token
+          - name: istio-token
             mountPath: /var/run/secrets/tokens
             readOnly: true
           - name: local-certs
-            mountPath: /var/run/secrets/istio-1.17.2-dns
+            mountPath: /var/run/secrets/istio-dns
           - name: cacerts
             mountPath: /etc/cacerts
             readOnly: true
-          - name: istio-1.17.2-kubeconfig
+          - name: istio-kubeconfig
             mountPath: /var/run/secrets/remote
             readOnly: true
-          - name: istio-1.17.2-csr-dns-cert
+          - name: istio-csr-dns-cert
             mountPath: /var/run/secrets/istiod/tls
             readOnly: true
-          - name: istio-1.17.2-csr-ca-configmap
+          - name: istio-csr-ca-configmap
             mountPath: /var/run/secrets/istiod/ca
             readOnly: true
       volumes:
@@ -1778,30 +1778,30 @@ spec:
       - emptyDir:
           medium: Memory
         name: local-certs
-      - name: istio-1.17.2-token
+      - name: istio-token
         projected:
           sources:
             - serviceAccountToken:
-                audience: istio-1.17.2-ca
+                audience: istio-ca
                 expirationSeconds: 43200
-                path: istio-1.17.2-token
+                path: istio-token
       # Optional: user-generated root
       - name: cacerts
         secret:
           secretName: cacerts
           optional: true
-      - name: istio-1.17.2-kubeconfig
+      - name: istio-kubeconfig
         secret:
-          secretName: istio-1.17.2-kubeconfig
+          secretName: istio-kubeconfig
           optional: true
-      # Optional: istio-1.17.2-csr dns pilot certs
-      - name: istio-1.17.2-csr-dns-cert
+      # Optional: istio-csr dns pilot certs
+      - name: istio-csr-dns-cert
         secret:
           secretName: istiod-tls
           optional: true
-      - name: istio-1.17.2-csr-ca-configmap
+      - name: istio-csr-ca-configmap
         configMap:
-          name: istio-1.17.2-ca-root-cert
+          name: istio-ca-root-cert
           defaultMode: 420
           optional: true
 ---
@@ -1810,10 +1810,10 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: istiod
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     app: istiod
-    release: istio-1.17.2
+    release: istio
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
@@ -1833,17 +1833,17 @@ spec:
         averageUtilization: 80
 ---
 # Source: istiod/templates/revision-tags.yaml
-# Adapted from istio-1.17.2-discovery/templates/mutatingwebhook.yaml
+# Adapted from istio-discovery/templates/mutatingwebhook.yaml
 # Removed paths for legacy and default selectors since a revision tag
 # is inherently created from a specific revision
 ---
 # Source: istiod/templates/telemetryv2_1.13.yaml
 # Note: http stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stats-filter-1.13
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -1863,7 +1863,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -1897,7 +1897,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -1932,7 +1932,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -1956,11 +1956,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.13.yaml
 # Note: tcp stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stats-filter-1.13
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -1978,7 +1978,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2010,7 +2010,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2042,7 +2042,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2065,11 +2065,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.14.yaml
 # Note: http stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stats-filter-1.14
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2089,7 +2089,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2123,7 +2123,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2158,7 +2158,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2182,11 +2182,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.14.yaml
 # Note: tcp stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stats-filter-1.14
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2204,7 +2204,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2236,7 +2236,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2268,7 +2268,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2291,11 +2291,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.15.yaml
 # Note: http stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stats-filter-1.15
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2315,7 +2315,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2349,7 +2349,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2384,7 +2384,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2408,11 +2408,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.15.yaml
 # Note: tcp stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stats-filter-1.15
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2430,7 +2430,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2462,7 +2462,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2494,7 +2494,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2517,11 +2517,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.16.yaml
 # Note: http stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stats-filter-1.16
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2541,7 +2541,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2575,7 +2575,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2610,7 +2610,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
@@ -2634,11 +2634,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.16.yaml
 # Note: tcp stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stats-filter-1.16
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2656,7 +2656,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2688,7 +2688,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2720,7 +2720,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
@@ -2743,11 +2743,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.17.yaml
 # Note: http stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: stats-filter-1.17
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2767,7 +2767,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -2787,7 +2787,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -2809,7 +2809,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -2820,11 +2820,11 @@ spec:
 ---
 # Source: istiod/templates/telemetryv2_1.17.yaml
 # Note: tcp stats filter is wasm enabled only in sidecars.
-apiVersion: networking.istio-1.17.2.io/v1alpha3
+apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: tcp-stats-filter-1.17
-  namespace: istio-1.17.2-system
+  namespace: istio-system
   labels:
     istio.io/rev: default
 spec:
@@ -2842,7 +2842,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -2860,7 +2860,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -2878,7 +2878,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: istio-1.17.2.stats
+          name: istio.stats
           typed_config:
             "@type": type.googleapis.com/udpa.type.v1.TypedStruct
             type_url: type.googleapis.com/stats.PluginConfig
@@ -2889,19 +2889,19 @@ spec:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: istio-1.17.2-sidecar-injector
+  name: istio-sidecar-injector
   labels:
     istio.io/rev: default
     install.operator.istio.io/owning-resource: unknown
     operator.istio.io/component: "Pilot"
     app: sidecar-injector
-    release: istio-1.17.2
+    release: istio
 webhooks:
-- name: rev.namespace.sidecar-injector.istio-1.17.2.io
+- name: rev.namespace.sidecar-injector.istio.io
   clientConfig:
     service:
       name: istiod
-      namespace: istio-1.17.2-system
+      namespace: istio-system
       path: "/inject"
       port: 443
   sideEffects: None
@@ -2914,23 +2914,23 @@ webhooks:
   admissionReviewVersions: ["v1beta1", "v1"]
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: In
       values:
       - "default"
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: NotIn
       values:
       - "false"
-- name: rev.object.sidecar-injector.istio-1.17.2.io
+- name: rev.object.sidecar-injector.istio.io
   clientConfig:
     service:
       name: istiod
-      namespace: istio-1.17.2-system
+      namespace: istio-system
       path: "/inject"
       port: 443
   sideEffects: None
@@ -2943,25 +2943,25 @@ webhooks:
   admissionReviewVersions: ["v1beta1", "v1"]
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: NotIn
       values:
       - "false"
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: In
       values:
       - "default"
-- name: namespace.sidecar-injector.istio-1.17.2.io
+- name: namespace.sidecar-injector.istio.io
   clientConfig:
     service:
       name: istiod
-      namespace: istio-1.17.2-system
+      namespace: istio-system
       path: "/inject"
       port: 443
   sideEffects: None
@@ -2974,21 +2974,21 @@ webhooks:
   admissionReviewVersions: ["v1beta1", "v1"]
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: In
       values:
       - enabled
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: NotIn
       values:
       - "false"
-- name: object.sidecar-injector.istio-1.17.2.io
+- name: object.sidecar-injector.istio.io
   clientConfig:
     service:
       name: istiod
-      namespace: istio-1.17.2-system
+      namespace: istio-system
       path: "/inject"
       port: 443
   sideEffects: None
@@ -3001,15 +3001,15 @@ webhooks:
   admissionReviewVersions: ["v1beta1", "v1"]
   namespaceSelector:
     matchExpressions:
-    - key: istio-1.17.2-injection
+    - key: istio-injection
       operator: DoesNotExist
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist
   objectSelector:
     matchExpressions:
-    - key: sidecar.istio-1.17.2.io/inject
+    - key: sidecar.istio.io/inject
       operator: In
       values:
       - "true"
-    - key: istio-1.17.2.io/rev
+    - key: istio.io/rev
       operator: DoesNotExist

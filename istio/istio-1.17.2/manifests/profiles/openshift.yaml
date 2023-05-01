@@ -1,4 +1,4 @@
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   components:
@@ -10,12 +10,12 @@ spec:
       cniBinDir: /var/lib/cni/bin
       cniConfDir: /etc/cni/multus/net.d
       chained: false
-      cniConfFileName: "istio-1.17.2-cni.conf"
+      cniConfFileName: "istio-cni.conf"
       excludeNamespaces:
-       - istio-1.17.2-system
+       - istio-system
        - kube-system
       logLevel: info
       privileged: true
     sidecarInjectorWebhook:
       injectedAnnotations:
-        k8s.v1.cni.cncf.io/networks: istio-1.17.2-cni
+        k8s.v1.cni.cncf.io/networks: istio-cni

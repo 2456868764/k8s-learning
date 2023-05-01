@@ -1,4 +1,4 @@
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   meshConfig:
@@ -6,15 +6,15 @@ spec:
     extensionProviders:
     - name: otel
       envoyOtelAls:
-        service: opentelemetry-collector.istio-1.17.2-system.svc.cluster.local
+        service: opentelemetry-collector.istio-system.svc.cluster.local
         port: 4317
     - name: skywalking
       skywalking:
-        service: tracing.istio-1.17.2-system.svc.cluster.local
+        service: tracing.istio-system.svc.cluster.local
         port: 11800
   components:
     egressGateways:
-    - name: istio-1.17.2-egressgateway
+    - name: istio-egressgateway
       enabled: true
       k8s:
         resources:
@@ -23,7 +23,7 @@ spec:
             memory: 40Mi
 
     ingressGateways:
-    - name: istio-1.17.2-ingressgateway
+    - name: istio-ingressgateway
       enabled: true
       k8s:
         resources:

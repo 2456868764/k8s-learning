@@ -1,10 +1,10 @@
 {{- $containers := list }}
-{{- range $index, $container := .Spec.Containers }}{{ if not (eq $container.Name "istio-1.17.2-proxy") }}{{ $containers = append $containers $container.Name }}{{end}}{{- end}}
+{{- range $index, $container := .Spec.Containers }}{{ if not (eq $container.Name "istio-proxy") }}{{ $containers = append $containers $container.Name }}{{end}}{{- end}}
 metadata:
   labels:
-    service.istio.io/canonical-name: {{ index .ObjectMeta.Labels `service.istio-1.17.2.io/canonical-name` | default (index .ObjectMeta.Labels `app.kubernetes.io/name`) | default (index .ObjectMeta.Labels `app`) | default .DeploymentMeta.Name  | quote }}
-    service.istio.io/canonical-revision: {{ index .ObjectMeta.Labels `service.istio-1.17.2.io/canonical-revision` | default (index .ObjectMeta.Labels `app.kubernetes.io/version`) | default (index .ObjectMeta.Labels `version`) | default "latest"  | quote }}
-    istio.io/rev: {{ index .ObjectMeta.Labels `istio-1.17.2.io/rev` | default .Revision | default "default" | quote }}
+    service.istio.io/canonical-name: {{ index .ObjectMeta.Labels `service.istio.io/canonical-name` | default (index .ObjectMeta.Labels `app.kubernetes.io/name`) | default (index .ObjectMeta.Labels `app`) | default .DeploymentMeta.Name  | quote }}
+    service.istio.io/canonical-revision: {{ index .ObjectMeta.Labels `service.istio.io/canonical-revision` | default (index .ObjectMeta.Labels `app.kubernetes.io/version`) | default (index .ObjectMeta.Labels `version`) | default "latest"  | quote }}
+    istio.io/rev: {{ index .ObjectMeta.Labels `istio.io/rev` | default .Revision | default "default" | quote }}
   annotations: {
     {{- if eq (len $containers) 1 }}
     kubectl.kubernetes.io/default-logs-container: "{{ index $containers 0 }}",
@@ -13,9 +13,9 @@ metadata:
   }
 spec:
   containers:
-  - name: istio-1.17.2-proxy
+  - name: istio-proxy
   {{- if contains "/" .Values.global.proxy.image }}
-    image: "{{ annotation .ObjectMeta `sidecar.istio-1.17.2.io/proxyImage` .Values.global.proxy.image }}"
+    image: "{{ annotation .ObjectMeta `sidecar.istio.io/proxyImage` .Values.global.proxy.image }}"
   {{- else }}
     image: "{{ .ProxyImage }}"
   {{- end }}
@@ -28,9 +28,9 @@ spec:
     - router
     - --domain
     - $(POD_NAMESPACE).svc.{{ .Values.global.proxy.clusterDomain }}
-    - --proxyLogLevel={{ annotation .ObjectMeta `sidecar.istio-1.17.2.io/logLevel` .Values.global.proxy.logLevel }}
-    - --proxyComponentLogLevel={{ annotation .ObjectMeta `sidecar.istio-1.17.2.io/componentLogLevel` .Values.global.proxy.componentLogLevel }}
-    - --log_output_level={{ annotation .ObjectMeta `sidecar.istio-1.17.2.io/agentLogLevel` .Values.global.logging.level }}
+    - --proxyLogLevel={{ annotation .ObjectMeta `sidecar.istio.io/logLevel` .Values.global.proxy.logLevel }}
+    - --proxyComponentLogLevel={{ annotation .ObjectMeta `sidecar.istio.io/componentLogLevel` .Values.global.proxy.componentLogLevel }}
+    - --log_output_level={{ annotation .ObjectMeta `sidecar.istio.io/agentLogLevel` .Values.global.logging.level }}
   {{- if .Values.global.sts.servicePort }}
     - --stsPort={{ .Values.global.sts.servicePort }}
   {{- end }}
@@ -148,26 +148,26 @@ spec:
       mountPath: /var/run/secrets/workload-spiffe-credentials
     {{- end }}
     {{- if eq .Values.global.pilotCertProvider "istiod" }}
-    - mountPath: /var/run/secrets/istio-1.17.2
+    - mountPath: /var/run/secrets/istio
       name: istiod-ca-cert
     {{- end }}
-    - mountPath: /var/lib/istio-1.17.2/data
-      name: istio-1.17.2-data
+    - mountPath: /var/lib/istio/data
+      name: istio-data
     # SDS channel between istioagent and Envoy
-    - mountPath: /etc/istio-1.17.2/proxy
-      name: istio-1.17.2-envoy
+    - mountPath: /etc/istio/proxy
+      name: istio-envoy
     {{- if eq .Values.global.jwtPolicy "third-party-jwt" }}
     - mountPath: /var/run/secrets/tokens
-      name: istio-1.17.2-token
+      name: istio-token
     {{- end }}
     {{- if .Values.global.mountMtlsCerts }}
     # Use the key and cert mounted to /etc/certs/ for the in-cluster mTLS communications.
     - mountPath: /etc/certs/
-      name: istio-1.17.2-certs
+      name: istio-certs
       readOnly: true
     {{- end }}
-    - name: istio-1.17.2-podinfo
-      mountPath: /etc/istio-1.17.2/pod
+    - name: istio-podinfo
+      mountPath: /etc/istio/pod
   volumes:
   - emptyDir: {}
     name: workload-socket
@@ -184,10 +184,10 @@ spec:
   # SDS channel between istioagent and Envoy
   - emptyDir:
       medium: Memory
-    name: istio-1.17.2-envoy
-  - name: istio-1.17.2-data
+    name: istio-envoy
+  - name: istio-data
     emptyDir: {}
-  - name: istio-1.17.2-podinfo
+  - name: istio-podinfo
     downwardAPI:
       items:
         - path: "labels"
@@ -197,28 +197,28 @@ spec:
           fieldRef:
             fieldPath: metadata.annotations
   {{- if eq .Values.global.jwtPolicy "third-party-jwt" }}
-  - name: istio-1.17.2-token
+  - name: istio-token
     projected:
       sources:
       - serviceAccountToken:
-          path: istio-1.17.2-token
+          path: istio-token
           expirationSeconds: 43200
           audience: {{ .Values.global.sds.token.aud }}
   {{- end }}
   {{- if eq .Values.global.pilotCertProvider "istiod" }}
   - name: istiod-ca-cert
     configMap:
-      name: istio-1.17.2-ca-root-cert
+      name: istio-ca-root-cert
   {{- end }}
   {{- if .Values.global.mountMtlsCerts }}
   # Use the key and cert mounted to /etc/certs/ for the in-cluster mTLS communications.
-  - name: istio-1.17.2-certs
+  - name: istio-certs
     secret:
       optional: true
       {{ if eq .Spec.ServiceAccountName "" }}
-      secretName: istio-1.17.2.default
+      secretName: istio.default
       {{ else -}}
-      secretName: {{  printf "istio-1.17.2.%s" .Spec.ServiceAccountName }}
+      secretName: {{  printf "istio.%s" .Spec.ServiceAccountName }}
       {{  end -}}
   {{- end }}
   {{- if .Values.global.imagePullSecrets }}

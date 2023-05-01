@@ -1,7 +1,7 @@
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 metadata:
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
   profile: default
   meshConfig:
@@ -25,7 +25,7 @@ spec:
                   readOnly: true
   components:
     ingressGateways:
-      - name: istio-1.17.2-ingressgateway
+      - name: istio-ingressgateway
         enabled: true
         label:
           istio: ingressgateway
@@ -33,7 +33,7 @@ spec:
           overlays:
             - apiVersion: apps/v1
               kind: Deployment
-              name: istio-1.17.2-ingressgateway
+              name: istio-ingressgateway
               patches:
                 - path: spec.template.spec.volumes.[name:workload-socket]
                   value:
@@ -41,7 +41,7 @@ spec:
                     csi:
                       driver: "csi.spiffe.io"
                       readOnly: true
-                - path: spec.template.spec.containers.[name:istio-1.17.2-proxy].volumeMounts.[name:workload-socket]
+                - path: spec.template.spec.containers.[name:istio-proxy].volumeMounts.[name:workload-socket]
                   value:
                     name: workload-socket
                     mountPath: "/run/secrets/workload-spiffe-uds"

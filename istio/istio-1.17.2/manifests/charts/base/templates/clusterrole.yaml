@@ -1,7 +1,7 @@
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 # DO NOT EDIT!
 # THIS IS A LEGACY CHART HERE FOR BACKCOMPAT
-# UPDATED CHART AT manifests/charts/istio-1.17.2-control/istio-1.17.2-discovery
+# UPDATED CHART AT manifests/charts/istio-control/istio-discovery
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -21,22 +21,22 @@ rules:
     resources: ["validatingwebhookconfigurations"]
     verbs: ["get", "list", "watch", "update"]
 
-  # istio-1.17.2 configuration
+  # istio configuration
   # removing CRD permissions can break older versions of Istio running alongside this control plane (https://github.com/istio/istio/issues/29382)
   # please proceed with caution
-  - apiGroups: ["config.istio-1.17.2.io", "security.istio-1.17.2.io", "networking.istio-1.17.2.io", "authentication.istio-1.17.2.io", "rbac.istio-1.17.2.io", "telemetry.istio-1.17.2.io"]
+  - apiGroups: ["config.istio.io", "security.istio.io", "networking.istio.io", "authentication.istio.io", "rbac.istio.io", "telemetry.istio.io"]
     verbs: ["get", "watch", "list"]
     resources: ["*"]
 {{- if .Values.global.istiod.enableAnalysis }}
-  - apiGroups: ["config.istio-1.17.2.io", "security.istio-1.17.2.io", "networking.istio-1.17.2.io", "authentication.istio-1.17.2.io", "rbac.istio-1.17.2.io", "telemetry.istio-1.17.2.io"]
+  - apiGroups: ["config.istio.io", "security.istio.io", "networking.istio.io", "authentication.istio.io", "rbac.istio.io", "telemetry.istio.io"]
     verbs: ["update"]
     # TODO: should be on just */status but wildcard is not supported
     resources: ["*"]
 {{- end }}
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
     resources: [ "workloadentries" ]
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list", "update", "patch", "create", "delete" ]
     resources: [ "workloadentries/status" ]
 
@@ -127,23 +127,23 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istio-1.17.2-reader-{{ .Values.global.istioNamespace }}
+  name: istio-reader-{{ .Values.global.istioNamespace }}
   labels:
-    app: istio-1.17.2-reader
+    app: istio-reader
     release: {{ .Release.Name }}
 rules:
   - apiGroups:
-      - "config.istio-1.17.2.io"
-      - "security.istio-1.17.2.io"
-      - "networking.istio-1.17.2.io"
-      - "authentication.istio-1.17.2.io"
-      - "rbac.istio-1.17.2.io"
+      - "config.istio.io"
+      - "security.istio.io"
+      - "networking.istio.io"
+      - "authentication.istio.io"
+      - "rbac.istio.io"
     resources: ["*"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["endpoints", "pods", "services", "nodes", "replicationcontrollers", "namespaces", "secrets"]
     verbs: ["get", "list", "watch"]
-  - apiGroups: ["networking.istio-1.17.2.io"]
+  - apiGroups: ["networking.istio.io"]
     verbs: [ "get", "watch", "list" ]
     resources: [ "workloadentries" ]
   - apiGroups: ["apiextensions.k8s.io"]

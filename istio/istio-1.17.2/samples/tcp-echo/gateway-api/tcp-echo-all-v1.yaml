@@ -3,7 +3,7 @@ kind: Gateway
 metadata:
   name: tcp-echo-gateway
 spec:
-  gatewayClassName: istio-1.17.2
+  gatewayClassName: istio
   listeners:
   - name: tcp-31400
     protocol: TCP

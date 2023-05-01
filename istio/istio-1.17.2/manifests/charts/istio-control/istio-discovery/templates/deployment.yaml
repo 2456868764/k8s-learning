@@ -188,26 +188,26 @@ spec:
 {{- end }}
           volumeMounts:
           {{- if eq .Values.global.jwtPolicy "third-party-jwt" }}
-          - name: istio-1.17.2-token
+          - name: istio-token
             mountPath: /var/run/secrets/tokens
             readOnly: true
           {{- end }}
           - name: local-certs
-            mountPath: /var/run/secrets/istio-1.17.2-dns
+            mountPath: /var/run/secrets/istio-dns
           - name: cacerts
             mountPath: /etc/cacerts
             readOnly: true
-          - name: istio-1.17.2-kubeconfig
+          - name: istio-kubeconfig
             mountPath: /var/run/secrets/remote
             readOnly: true
           {{- if .Values.pilot.jwksResolverExtraRootCA }}
           - name: extracacerts
             mountPath: /cacerts
           {{- end }}
-          - name: istio-1.17.2-csr-dns-cert
+          - name: istio-csr-dns-cert
             mountPath: /var/run/secrets/istiod/tls
             readOnly: true
-          - name: istio-1.17.2-csr-ca-configmap
+          - name: istio-csr-ca-configmap
             mountPath: /var/run/secrets/istiod/ca
             readOnly: true
       volumes:
@@ -217,31 +217,31 @@ spec:
           medium: Memory
         name: local-certs
       {{- if eq .Values.global.jwtPolicy "third-party-jwt" }}
-      - name: istio-1.17.2-token
+      - name: istio-token
         projected:
           sources:
             - serviceAccountToken:
                 audience: {{ .Values.global.sds.token.aud }}
                 expirationSeconds: 43200
-                path: istio-1.17.2-token
+                path: istio-token
       {{- end }}
       # Optional: user-generated root
       - name: cacerts
         secret:
           secretName: cacerts
           optional: true
-      - name: istio-1.17.2-kubeconfig
+      - name: istio-kubeconfig
         secret:
-          secretName: istio-1.17.2-kubeconfig
+          secretName: istio-kubeconfig
           optional: true
-      # Optional: istio-1.17.2-csr dns pilot certs
-      - name: istio-1.17.2-csr-dns-cert
+      # Optional: istio-csr dns pilot certs
+      - name: istio-csr-dns-cert
         secret:
           secretName: istiod-tls
           optional: true
-      - name: istio-1.17.2-csr-ca-configmap
+      - name: istio-csr-ca-configmap
         configMap:
-          name: istio-1.17.2-ca-root-cert
+          name: istio-ca-root-cert
           defaultMode: 420
           optional: true
   {{- if .Values.pilot.jwksResolverExtraRootCA }}

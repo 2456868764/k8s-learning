@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: istio-1.17.2-custom-bootstrap-config
+  name: istio-custom-bootstrap-config
   namespace: default
 data:
   custom_bootstrap.json: |

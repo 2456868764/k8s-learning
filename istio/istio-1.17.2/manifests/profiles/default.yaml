@@ -1,9 +1,9 @@
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 metadata:
-  namespace: istio-1.17.2-system
+  namespace: istio-system
 spec:
-  hub: docker.io/istio-1.17.2
+  hub: docker.io/istio
   tag: 1.17.2
 
   # You may override parts of meshconfig by uncommenting the following lines.
@@ -24,10 +24,10 @@ spec:
 
     # Istio Gateway feature
     ingressGateways:
-    - name: istio-1.17.2-ingressgateway
+    - name: istio-ingressgateway
       enabled: true
     egressGateways:
-    - name: istio-1.17.2-egressgateway
+    - name: istio-egressgateway
       enabled: false
 
     # Istio CNI feature
@@ -43,7 +43,7 @@ spec:
   values:
     defaultRevision: ""
     global:
-      istioNamespace: istio-1.17.2-system
+      istioNamespace: istio-system
       istiod:
         enableAnalysis: false
       logging:
@@ -111,7 +111,7 @@ spec:
       useMCP: false
       sds:
         token:
-          aud: istio-1.17.2-ca
+          aud: istio-ca
       sts:
         servicePort: 0
       meshNetworks: {}
@@ -161,24 +161,24 @@ spec:
         env: {}
         autoscaleEnabled: true
         type: ClusterIP
-        name: istio-1.17.2-egressgateway
+        name: istio-egressgateway
         secretVolumes:
           - name: egressgateway-certs
-            secretName: istio-1.17.2-egressgateway-certs
-            mountPath: /etc/istio-1.17.2/egressgateway-certs
+            secretName: istio-egressgateway-certs
+            mountPath: /etc/istio/egressgateway-certs
           - name: egressgateway-ca-certs
-            secretName: istio-1.17.2-egressgateway-ca-certs
-            mountPath: /etc/istio-1.17.2/egressgateway-ca-certs
+            secretName: istio-egressgateway-ca-certs
+            mountPath: /etc/istio/egressgateway-ca-certs
 
       istio-ingressgateway:
         autoscaleEnabled: true
         type: LoadBalancer
-        name: istio-1.17.2-ingressgateway
+        name: istio-ingressgateway
         env: {}
         secretVolumes:
           - name: ingressgateway-certs
-            secretName: istio-1.17.2-ingressgateway-certs
-            mountPath: /etc/istio-1.17.2/ingressgateway-certs
+            secretName: istio-ingressgateway-certs
+            mountPath: /etc/istio/ingressgateway-certs
           - name: ingressgateway-ca-certs
-            secretName: istio-1.17.2-ingressgateway-ca-certs
-            mountPath: /etc/istio-1.17.2/ingressgateway-ca-certs
+            secretName: istio-ingressgateway-ca-certs
+            mountPath: /etc/istio/ingressgateway-ca-certs

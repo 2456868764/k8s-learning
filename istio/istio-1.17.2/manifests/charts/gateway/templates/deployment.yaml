@@ -42,7 +42,7 @@ spec:
           value: "0"
       {{- end }}
       containers:
-        - name: istio-1.17.2-proxy
+        - name: istio-proxy
           # "auto" will be populated at runtime by the mutating webhook. See https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#customizing-injection
           image: auto
           {{- with .Values.imagePullPolicy }}

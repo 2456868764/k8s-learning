@@ -1,4 +1,4 @@
-{{- $gateway := index .Values "gateways" "istio-1.17.2-egressgateway" }}
+{{- $gateway := index .Values "gateways" "istio-egressgateway" }}
 {{- if ne $gateway.injectionTemplate "" }}
 {{/* This provides a minimal gateway, ready to be injected.
      Any settings from values.gateways should be here - these are options specific to the gateway.
@@ -7,7 +7,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $gateway.name | default "istio-1.17.2-egressgateway" }}
+  name: {{ $gateway.name | default "istio-egressgateway" }}
   namespace: {{ .Release.Namespace }}
   labels:
 {{ $gateway.labels | toYaml | indent 4 }}
@@ -32,9 +32,9 @@ spec:
     metadata:
       labels:
 {{ $gateway.labels | toYaml | indent 8 }}
-{{- if eq .Release.Namespace "istio-1.17.2-system"}}
+{{- if eq .Release.Namespace "istio-system"}}
         heritage: Tiller
-        release: istio-1.17.2
+        release: istio
         chart: gateways
 {{- end }}
         install.operator.istio.io/owning-resource: {{ .Values.ownerName | default "unknown" }}
@@ -62,12 +62,12 @@ spec:
         runAsNonRoot: true
         fsGroup: 1337
 {{- end }}
-      serviceAccountName: {{ $gateway.name | default "istio-1.17.2-egressgateway" }}-service-account
+      serviceAccountName: {{ $gateway.name | default "istio-egressgateway" }}-service-account
 {{- if .Values.global.priorityClassName }}
       priorityClassName: "{{ .Values.global.priorityClassName }}"
 {{- end }}
       containers:
-        - name: istio-1.17.2-proxy
+        - name: istio-proxy
           image: auto
 {{- if .Values.global.imagePullPolicy }}
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}

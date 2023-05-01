@@ -1,13 +1,13 @@
 apiVersion: v1
 name: cni
-# This version is never actually shipped. istio-1.17.2/release-builder will replace it at build-time
+# This version is never actually shipped. istio/release-builder will replace it at build-time
 # with the appropriate version
 version: 1.17.2
 appVersion: 1.17.2
-description: Helm chart for istio-1.17.2-cni components
+description: Helm chart for istio-cni components
 keywords:
-  - istio-1.17.2-cni
-  - istio-1.17.2
+  - istio-cni
+  - istio
 sources:
   - https://github.com/istio/istio/tree/master/cni
 engine: gotpl

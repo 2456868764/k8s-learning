@@ -1,6 +1,6 @@
 # The ambient profile has ambient mesh enabled
 # Note: currently this only enables HBONE for sidecars, as the full ambient mode is not yet implemented.
-apiVersion: install.istio-1.17.2.io/v1alpha1
+apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
   meshConfig:

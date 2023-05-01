@@ -2,7 +2,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: istio-1.17.2-validator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}-{{ .Values.global.istioNamespace }}
+  name: istio-validator{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}-{{ .Values.global.istioNamespace }}
   labels:
     app: istiod
     release: {{ .Release.Name }}
@@ -11,7 +11,7 @@ metadata:
 webhooks:
   # Webhook handling per-revision validation. Mostly here so we can determine whether webhooks
   # are rejecting invalid configs on a per-revision basis.
-  - name: rev.validation.istio-1.17.2.io
+  - name: rev.validation.istio.io
     clientConfig:
       # Should change from base but cannot for API compat
       {{- if .Values.base.validationURL }}
@@ -27,10 +27,10 @@ webhooks:
           - CREATE
           - UPDATE
         apiGroups:
-          - security.istio-1.17.2.io
-          - networking.istio-1.17.2.io
-          - telemetry.istio-1.17.2.io
-          - extensions.istio-1.17.2.io
+          - security.istio.io
+          - networking.istio.io
+          - telemetry.istio.io
+          - extensions.istio.io
           {{- if .Values.base.validateGateway }}
           - gateway.networking.k8s.io
           {{- end }}
@@ -46,7 +46,7 @@ webhooks:
     admissionReviewVersions: ["v1beta1", "v1"]
     objectSelector:
       matchExpressions:
-        - key: istio-1.17.2.io/rev
+        - key: istio.io/rev
           operator: In
           values:
           {{- if (eq .Values.revision "") }}
