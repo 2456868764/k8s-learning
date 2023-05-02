@@ -51,7 +51,7 @@ services:
     ports:
       - "8001:8001"
   opa_web:
-    image: openpolicyagent/opa:latest-istio-1.17.2
+    image: openpolicyagent/opa:latest-istio
     volumes:
     - ./docker/web/opa/policies:/policies
     - ./docker/web/opa/config:/config
@@ -71,7 +71,7 @@ services:
     ports:
       - "9191:9191"
   opa_be:
-    image: openpolicyagent/opa:latest-istio-1.17.2
+    image: openpolicyagent/opa:latest-istio
     volumes:
     - ./docker/backend/opa/policies:/policies
     - ./docker/backend/opa/config:/config
@@ -91,7 +91,7 @@ services:
     ports:
       - "9192:9192"
   opa_db:
-    image: openpolicyagent/opa:latest-istio-1.17.2
+    image: openpolicyagent/opa:latest-istio
     volumes:
     - ./docker/db/opa/policies:/policies
     - ./docker/db/opa/config:/config

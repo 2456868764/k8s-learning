@@ -4,14 +4,14 @@ metadata:
   name: httpbin-gateway
 spec:
   selector:
-    istio: ingressgateway
+    istio: ingressgateway # use Istio default gateway implementation
   servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "httpbin.example.com"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -19,12 +19,15 @@ metadata:
   name: httpbin
 spec:
   hosts:
-  - "*"
+    - "httpbin.example.com"
   gateways:
-  - httpbin-gateway
+    - httpbin-gateway
   http:
-  - route:
-    - destination:
-        host: httpbin
-        port:
-          number: 8000
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            port:
+              number: 8000
+            host: httpbin

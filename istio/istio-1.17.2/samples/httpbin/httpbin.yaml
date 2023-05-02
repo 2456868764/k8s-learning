@@ -40,7 +40,7 @@ kind: Deployment
 metadata:
   name: httpbin
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: httpbin
@@ -53,8 +53,29 @@ spec:
     spec:
       serviceAccountName: httpbin
       containers:
-      - image: docker.io/kong/httpbin
+      - image: docker.io/2456868764/httpbin:1.0.0
         imagePullPolicy: IfNotPresent
         name: httpbin
         ports:
         - containerPort: 80
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
