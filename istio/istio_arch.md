@@ -63,6 +63,24 @@ $ kubectl apply -f samples/addons/kaili.yaml
 $ kubectl apply -f samples/addons/prometheus.yaml
 ```
 
+
+## 需要开启 Envoy 访问日志，执行以下命令修改 istio 配置
+
+  ```shell
+  kubectl -n istio-system edit configmap istio
+  ```
+  
+  ```yaml
+  data:
+  mesh: |-
+    accessLogEncoding: JSON
+    accessLogFile: /dev/stdout
+  ```
+
+- accessLogEncoding表示 accesslog 输出格式，Istio 预定义了 TEXT 和 JSON 两种日志输出格式。 默认使用 TEXT，通常改成 JSON 以提升可读性；
+- accessLogFile:表示 accesslog 输出位置，通常指定到 /dev/stdout (标准输出)，以便使用 kubectl logs 来查看日志。
+
+
 ## 安装 httpbin 测试
 
 - Start the httpbin service inside the Istio service mesh:
@@ -83,7 +101,35 @@ $ kubectl apply -f samples/addons/prometheus.yaml
   ```shell
   kubectl apply -f samples/httpbin/httpbin-gateway.yaml -n istio-demo
   ```
+  
+- apply sleep pod
+  ```shell
+  kubectl apply -f samples/sleep/sleep.yaml -n istio-demo
+  ```
+- test 
+  ```shell
+   export SLEEP_POD=$(kubectl get pods -l app=sleep -o 'jsonpath={.items[0].metadata.name}' -n istio-demo)
+   kubectl exec "$SLEEP_POD" -n istio-demo -c sleep -- curl -sS http://httpbin:8000/headers
+  
+  {"Accept":"*/*","User-Agent":"curl/8.0.1-DEV","X-B3-Parentspanid":"b30e5a52126e8a3a","X-B3-Sampled":"1","X-B3-Spanid":"32e1a5ae744f591f","X-B3-Traceid":"2d88aa543462b4e1b30e5a52126e8a3a","X-Envoy-Attempt-Count":"1","X-Forwarded-Client-Cert":"By=spiffe://cluster.local/ns/istio-demo/sa/httpbin;Hash=3cb80bdef2f0cd5c2ecb03244a378fb1faecfc192667bd0cb67886d9f7341b80;Subject=\"\";URI=spiffe://cluster.local/ns/istio-demo/sa/sleep","X-Forwarded-Proto":"http","X-Request-Id":"65508395-36bf-9ac6-98f2-72ad5400f54a"}%   
 
+  ```
+- check sleep pod envoy proxy logs
+  ```shell
+  kubectl logs -l app=sleep -n istio-demo -c istio-proxy
+  
+  {"route_name":"default","response_flags":"-","response_code":200,"authority":"httpbin:8000","user_agent":"curl/8.0.1-DEV","method":"GET","bytes_sent":508,"request_id":"6618b006-b862-927e-ac43-aaf4f2026c0d","bytes_received":0,"downstream_remote_address":"10.10.241.84:40658","x_forwarded_for":null,"upstream_cluster":"outbound|8000||httpbin.istio-demo.svc.cluster.local","upstream_transport_failure_reason":null,"path":"/headers","start_time":"2023-05-02T01:45:04.154Z","protocol":"HTTP/1.1","connection_termination_details":null,"upstream_service_time":"11","duration":12,"upstream_local_address":"10.10.241.84:58514","upstream_host":"10.10.241.82:80","response_code_details":"via_upstream","downstream_local_address":"10.97.94.170:8000","requested_server_name":null}
+
+  ```
+
+- check httpbin pod envoy proxy logs
+  ```shell
+  kubectl logs -l app=httpbin -n istio-demo -c istio-proxy
+  
+  {"response_flags":"-","x_forwarded_for":null,"start_time":"2023-05-02T01:45:04.158Z","connection_termination_details":null,"path":"/headers","upstream_cluster":"inbound|80||","user_agent":"curl/8.0.1-DEV","upstream_transport_failure_reason":null,"response_code_details":"via_upstream","requested_server_name":"outbound_.8000_._.httpbin.istio-demo.svc.cluster.local","response_code":200,"upstream_host":"10.10.241.82:80","duration":2,"route_name":"default","upstream_local_address":"127.0.0.6:56619","bytes_received":0,"protocol":"HTTP/1.1","authority":"httpbin:8000","downstream_remote_address":"10.10.241.84:58514","method":"GET","bytes_sent":508,"request_id":"6618b006-b862-927e-ac43-aaf4f2026c0d","downstream_local_address":"10.10.241.82:80","upstream_service_time":"1"}
+
+  ```
+  
 # 架构
 
 ## 概览
@@ -457,10 +503,11 @@ istio-ingressgateway   LoadBalancer   10.98.130.245    <pending>     15021:31829
 (
 ```
 
+8. 测试 ingressgateway
+
 查看 ingressgateway，本地测试这里用 nodePort 来暴露访问 ingressgateway, 获取 name == http2 暴露端口
 
 ```shell
-(base) ➜   
 export INGRESS_NAME=istio-ingressgateway
 export INGRESS_NS=istio-system
 export INGRESS_HOST=$(kubectl get po -l istio=ingressgateway -n "${INGRESS_NS}" -o jsonpath='{.items[0].status.hostIP}')
@@ -471,18 +518,29 @@ export TCP_INGRESS_PORT=$(kubectl -n "${INGRESS_NS}" get service "${INGRESS_NAME
 
 然后通过 nodeIP + Ingress_PORT 来访问 ingressgateway 入口
 
-使用 curl 访问 httpbin 服务：
+- 使用 curl 访问 httpbin 服务：
 
-```shell
-$ curl -s -I -HHost:httpbin.example.com "http://$INGRESS_HOST:$INGRESS_PORT/"
-```
+  ```shell
+  $ curl -s -H "Host:httpbin.example.com" "http://$INGRESS_HOST:$INGRESS_PORT/hostname"
+  
+  "httpbin-798dbb9f74-l7ntg"%    
+  ```
+
+- 检查 ingressgateway proxy日志
+
+  ```shell
+  kubectl logs -l app=istio-ingressgateway -n istio-system -c istio-proxy
+  
+  {"method":"GET","response_flags":"-","connection_termination_details":null,"response_code_details":"via_upstream","request_id":"1e6c664a-0604-9ac1-b4d7-484be35cee92","protocol":"HTTP/1.1","upstream_local_address":"10.10.241.86:34222","downstream_local_address":"10.10.241.86:8080","upstream_service_time":"9","user_agent":"curl/7.64.1","upstream_cluster":"outbound|8000||httpbin.istio-demo.svc.cluster.local","route_name":null,"downstream_remote_address":"192.168.64.16:55163","requested_server_name":null,"bytes_received":0,"duration":15,"upstream_host":"10.10.241.82:80","path":"/hostname","bytes_sent":26,"x_forwarded_for":"192.168.64.16","upstream_transport_failure_reason":null,"response_code":200,"authority":"httpbin.example.com","start_time":"2023-05-02T01:35:38.296Z"}
+
+  ```
+
 
 ## side car
 
 下图展示的是 Istio 数据平面中 sidecar 的组成，以及与其交互的对象。
 
 ![img.png](images/istio2.png)
-
 
 
 ## 常用连接
