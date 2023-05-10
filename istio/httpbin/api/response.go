@@ -97,3 +97,28 @@ func FileExisted(path string) bool {
 	}
 	return true
 }
+
+type ResponseAny struct {
+	Code int `json:"code"`
+	Data any `json:"data"`
+}
+
+type Base struct {
+	Application    string `json:"application" yaml:"application"`
+	Service        string `json:"service" yaml:"service"`
+	ID             string `json:"id" yaml:"id"`
+	ServiceVersion string `json:"serviceVersion" yaml:"serviceVersion"`
+	ServiceGroup   string `json:"serviceGroup" yaml:"serviceGroup"`
+}
+
+type ConditionRouteDto struct {
+	Base
+
+	Conditions []string `json:"conditions" yaml:"conditions" binding:"required"`
+
+	Priority      int    `json:"priority" yaml:"priority"`
+	Enabled       bool   `json:"enabled" yaml:"enabled" binding:"required"`
+	Force         bool   `json:"force" yaml:"force"`
+	Runtime       bool   `json:"runtime" yaml:"runtime"`
+	ConfigVersion string `json:"configVersion" yaml:"configVersion" binding:"required"`
+}

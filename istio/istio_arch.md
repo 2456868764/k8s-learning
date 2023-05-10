@@ -1928,6 +1928,15 @@ tcp6       0      0 :::15020                :::*                    LISTEN
 
 https://istio.io/latest/docs/ops/deployment/requirements/#ports-used-by-istio
 
+- sidecar envoy 使用端口
+
+![image](./images/istio4.png)
+
+- 控制平面 istiod 使用端口
+
+![image](./images/istio5.png)
+
+
 我们再进入 httpbin Pod 中，使用 lsof -i 命令查看它打开的端口，如下图所示。
 
 ```shell

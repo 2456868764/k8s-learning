@@ -33,3 +33,19 @@ func Healthz(c *gin.Context) {
 	}
 	c.JSON(http.StatusNotFound, "not healthz")
 }
+
+func Bool(c *gin.Context) {
+	c.JSON(http.StatusCreated, true)
+}
+
+func ReponseAnyDto(c *gin.Context) {
+	c.JSON(http.StatusOK, ResponseAny{Code: 1, Data: ConditionRouteDto{}})
+}
+
+func ReponseAnyArray(c *gin.Context) {
+	c.JSON(http.StatusOK, ResponseAny{Code: 1, Data: []ConditionRouteDto{ConditionRouteDto{}}})
+}
+
+func ReponseAnyString(c *gin.Context) {
+	c.JSON(http.StatusOK, ResponseAny{Code: 1, Data: "hello"})
+}

@@ -42,11 +42,11 @@
 > - 支持HTTP/1.1、WebSockets和HTTP/2，但不支持SPDY
 > - 关联的路由表可静态配置，亦可经由 xDS API中的 RDS 动态生成；
 > - 内建重试插件，可用于配置重试行为
-    >   - Host Predicates
+>   - Host Predicates
 >   - Priority Predicates
 > - 内建支持302重定向，它可以捕获302重定向响应，合成新请求后将其发送到新的路由匹配 ( match )所指定的上游端点，并将收到的响应作为对原始请求的响应返回客户端
 > - 支持适用于HTTP连接及其组成流（constituent streams）的多种可配置超时机制
-    >   - 连接级别：空闲超时和排空超时（GOAWAY）；
+>   - 连接级别：空闲超时和排空超时（GOAWAY）；
 >   - 流级别：  空闲超时、每路由相关的上游端点超时和每路由相关的gRPC最大超时时长；
 > - 基于自定义集群的动态转发代理；
 
@@ -266,7 +266,7 @@ virtual_hosts:
 > - 基于prefix、path、safe_regex和connect_matchter 四者其中任何一个进行URL匹配。
 > - 可额外根据headers 和query_parameters 完成报文匹配
 > - 匹配的到报文可有三种路由机制
-    >   - redirect
+>   - redirect
 >   - direct_response
 >   - route
 
@@ -275,9 +275,9 @@ virtual_hosts:
 > - 支持cluster、weighted_clusters和cluster_header三者之一定义流量路由目标
 > - 转发期间可根据prefix_rewrite和host_rewrite完成URL重写；
 > - 还可以额外配置流量管理机制，例如：
-    >   - 超时，重试：timeout、retry_policy
->   - 测试： request_mirror_policies
->   - 流控： rate_limits
+>   - 超时/重试: timeout、retry_policy
+>   - 测试: request_mirror_policies
+>   - 流控: rate_limits
 >   - 访问控制：cors
 
 ## Envoy HTTP 路由配置

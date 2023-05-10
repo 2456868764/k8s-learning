@@ -54,7 +54,7 @@ xDS的各API还支持增量传输机制，包括ADS
 
 > * Management Server上的配置需要为适配到不同的Envoy实例
 > * Envoy 实例请求发现配置时，需要在请求报文中上报自身的信息
-    >  - 例如id、cluster、metadata和locality等
+>  - 例如id、cluster、metadata和locality等
 >  - 这些配置信息定义在Bootstrap配置文件中
 >
 
@@ -320,3 +320,5 @@ curl http://127.0.0.1:8080/hostname
 "c87a1782a38b"
 
 ```
+
+
