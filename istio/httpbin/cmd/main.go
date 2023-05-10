@@ -17,5 +17,6 @@ func main() {
 	r.GET("/dto", api.ReponseAnyDto)
 	r.GET("/arraydto", api.ReponseAnyArray)
 	r.GET("/string", api.ReponseAnyString)
+	r.GET("/service", api.Service)
 	r.Run(":80")
 }

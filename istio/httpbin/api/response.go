@@ -35,7 +35,15 @@ func NewResponseFromContext(c *gin.Context) Response {
 	}
 
 	for hk, hv := range headers {
-		response.Headers[hk] = strings.Join(hv, ",")
+		response.Headers[strings.ToLower(hk)] = strings.Join(hv, ",")
+	}
+
+	// Add  trace header
+	_, ok := response.Headers["x-service-trace"]
+	if !ok {
+		response.Headers["x-service-trace"] = getHostName()
+	} else {
+		response.Headers["x-service-trace"] = response.Headers["x-service-trace"] + "/" + getHostName()
 	}
 
 	for fk, fv := range form {
