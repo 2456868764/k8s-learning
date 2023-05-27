@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var defaultTraceHeaders = []string{
+	"X-Ot-Span-Context", "X-Request-Id",
+	"X-B3-TraceId", "X-B3-SpanId", "X-B3-ParentSpanId", "X-B3-Sampled", "X-B3-Flags",
+	"uber-trace-id", "sw8"}
+
 func Anything(c *gin.Context) {
 	response := NewResponseFromContext(c)
 	c.JSON(http.StatusOK, response)
@@ -29,8 +34,13 @@ func Headers(c *gin.Context) {
 }
 
 func Healthz(c *gin.Context) {
+	c.JSON(http.StatusOK, "healthz")
+	return
+}
+
+func HealthzFile(c *gin.Context) {
 	if FileExisted("./healthz") {
-		c.JSON(http.StatusOK, "healthz")
+		c.JSON(http.StatusOK, "ok")
 		return
 	}
 	c.JSON(http.StatusNotFound, "not healthz")
@@ -78,10 +88,11 @@ func Service(c *gin.Context) {
 	lowerCaseHeader := make(http.Header)
 	for key, value := range headers {
 		headK := strings.ToLower(key)
-		if headK == "method" || headK == "content-length" || headK == "host" {
-			continue
+		for _, traceHeader := range defaultTraceHeaders {
+			if headK == strings.ToLower(traceHeader) {
+				lowerCaseHeader[strings.ToLower(key)] = value
+			}
 		}
-		lowerCaseHeader[strings.ToLower(key)] = value
 	}
 	// Add service trace header
 	traceHeader, ok := lowerCaseHeader["x-service-trace"]
