@@ -7,44 +7,21 @@ static_resources:
           port_value: 18000
       filter_chains:
         - filters:
-            - name: envoy.http_connection_manager
+            - name: envoy.filters.network.wasm
               typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                stat_prefix: ingress_http
-                codec_type: auto
-                route_config:
-                  name: local_route
-                  virtual_hosts:
-                    - name: local_service
-                      domains:
-                        - "*"
-                      routes:
-                        - match:
-                            prefix: "/"
-                          route:
-                            cluster: web_service
-                http_filters:
-                  - name: envoy.filters.http.wasm
-                    typed_config:
-                      "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-                      type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
-                      value:
-                        config:
-                          configuration:
-                            "@type": type.googleapis.com/google.protobuf.StringValue
-                            value: |
-                              {
-                                "header": "x-wasm-header",
-                                "value": "demo-wasm"
-                              }
-                          vm_config:
-                            runtime: "envoy.wasm.runtime.v8"
-                            code:
-                              local:
-                                filename: "./examples/http_headers/main.wasm"
-                  - name: envoy.filters.http.router
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+                "@type": type.googleapis.com/envoy.extensions.filters.network.wasm.v3.Wasm
+                config:
+                  vm_config:
+                    runtime: "envoy.wasm.runtime.v8"
+                    code:
+                      local:
+                        filename: "./examples/network/main.wasm"
+
+            - name: envoy.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                stat_prefix: ingress
+                cluster: web_service
 
     - name: staticreply
       address:
@@ -78,6 +55,12 @@ static_resources:
 
   clusters:
     - name: web_service
+      metadata:
+        filter_metadata:
+          location:
+            cloud_provider: aws
+            region: ap-northeast-1
+            az: ap-northeast-1a
       connect_timeout: 0.25s
       type: STATIC
       lb_policy: ROUND_ROBIN

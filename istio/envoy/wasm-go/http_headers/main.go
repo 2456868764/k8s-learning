@@ -1,3 +1,17 @@
+// Copyright 2020-2021 Tetrate
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -37,7 +51,6 @@ type pluginContext struct {
 
 // Override types.DefaultPluginContext.
 func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
-	proxywasm.LogDebug("NewHttpContext()=================================")
 	return &httpHeaders{
 		contextID:   contextID,
 		headerName:  p.headerName,
@@ -46,7 +59,7 @@ func (p *pluginContext) NewHttpContext(contextID uint32) types.HttpContext {
 }
 
 func (p *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPluginStartStatus {
-	proxywasm.LogDebug("OnPluginStart()=================================")
+	proxywasm.LogDebug("loading plugin config")
 	data, err := proxywasm.GetPluginConfiguration()
 	if data == nil {
 		return types.OnPluginStartStatusOK
@@ -86,7 +99,6 @@ type httpHeaders struct {
 
 // Override types.DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
-	proxywasm.LogDebug("OnHttpRequestHeaders()=================================")
 	err := proxywasm.ReplaceHttpRequestHeader("test", "best")
 	if err != nil {
 		proxywasm.LogCritical("failed to set request header: test")
@@ -105,7 +117,6 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 
 // Override types.DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpResponseHeaders(_ int, _ bool) types.Action {
-	proxywasm.LogDebug("OnHttpResponseHeaders()=================================")
 	proxywasm.LogInfof("adding header: %s=%s", ctx.headerName, ctx.headerValue)
 
 	// Add a hardcoded header
@@ -134,23 +145,5 @@ func (ctx *httpHeaders) OnHttpResponseHeaders(_ int, _ bool) types.Action {
 
 // Override types.DefaultHttpContext.
 func (ctx *httpHeaders) OnHttpStreamDone() {
-	proxywasm.LogDebug("OnHttpStreamDone()=================================")
 	proxywasm.LogInfof("%d finished", ctx.contextID)
-}
-
-func (ctx *httpHeaders) OnHttpRequestBody(_ int, _ bool) types.Action {
-	proxywasm.LogDebug("OnHttpRequestBody()=================================")
-	return types.ActionContinue
-}
-func (ctx *httpHeaders) OnHttpRequestTrailers(_ int) types.Action {
-	proxywasm.LogDebug("OnHttpRequestTrailers()=================================")
-	return types.ActionContinue
-}
-func (ctx *httpHeaders) OnHttpResponseBody(_ int, _ bool) types.Action {
-	proxywasm.LogDebug(" OnHttpResponseBody()=================================")
-	return types.ActionContinue
-}
-func (ctx *httpHeaders) OnHttpResponseTrailers(_ int) types.Action {
-	proxywasm.LogDebug("OnHttpResponseTrailers()=================================")
-	return types.ActionContinue
 }
