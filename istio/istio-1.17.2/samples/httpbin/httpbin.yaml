@@ -48,7 +48,7 @@ spec:
   template:
     metadata:
       labels:
-        app: httpbin
+        app: http
         version: v1
     spec:
       serviceAccountName: httpbin
