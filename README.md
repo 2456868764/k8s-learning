@@ -97,13 +97,12 @@
   
 * istio
   * [istio 架构](./istio/istio_arch.md)
-  * [istio envoyFilter](./istio/isito_envoyfilter.md)
   * [流量劫持原理分析](./istio/istio_traffic_concepts.md)
   * [流量管理]
   * [API Gateway]
   * [安全与零信任网络]
   * [可观察性]
-  * [扩展 & EnvoyFilter & Wasmplugin]
+  * [扩展 & EnvoyFilter & Wasmplugin](./istio/isito_envoyfilter.md)
   * [Pilot 源码分析]
   * [Ambient 模式原理分析]
 
