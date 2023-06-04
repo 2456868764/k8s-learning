@@ -33,6 +33,23 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+
+## Tool Binaries
+SWAGGER ?= $(LOCALBIN)/swag
+GOLANG_LINT ?= $(LOCALBIN)/golangci-lint
+GOFUMPT  ?= $(LOCALBIN)/gofumpt
+
+
+## Tool Versions
+SWAGGER_VERSION ?= v1.16.1
+GOLANG_LINT_VERSION ?= v1.52.2
+GOFUMPT_VERSION ?= latest
+
+
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # This is a requirement for 'setup-envtest.sh' in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -56,9 +73,14 @@ SHELL = /usr/bin/env bash -o pipefail
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+.PHONY: swagger
+swagger: install-swagger## Generate swagger docs.
+	$(SWAGGER) init --parseDependency -d cmd/,pkg/ -o cmd/docs
+	@rm -f cmd/docs/docs.go cmd/docs/swagger.yaml
+
 .PHONY: fmt
-fmt: ## Run go fmt against code.
-	go fmt ./...
+fmt: install-gofumpt ## Run gofumpt against code.
+	$(GOFUMPT) -l -w .
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -70,12 +92,13 @@ tidy:
 	@go mod tidy
 
 .PHONY: lint
-lint: golangci-lint  ## Run golang lint against code
-	@$(GOLANG_LINT) run ./...
+lint: install-golangci-lint  ## Run golang lint against code
+	GO111MODULE=on $(GOLANG_LINT) run ./... --timeout=30m -v  --disable-all --enable=gofumpt --enable=govet --enable=staticcheck --enable=ineffassign --enable=misspell
 
 .PHONY: test
-test: fmt vet lint ## Run tests.
+test: fmt vet  ## Run all tests.
 	go test -coverprofile coverage.out -covermode=atomic ./...
+
 
 .PHONY: echoLDFLAGS
 echoLDFLAGS:
@@ -123,3 +146,21 @@ image-buildx:  ## Build and push docker image for the httpbin for cross-platform
 	- docker buildx build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=httpbin  --push --platform=$(PLATFORMS) --tag ${HTTPBIN_IMG} -f Dockerfile.cross .
 	- docker buildx rm project-httpbin-builder
 	rm Dockerfile.cross
+
+
+.PHONY: install-swagger
+install-swagger: $(LOCALBIN) ## Download swagger locally if necessary.
+	test -s $(LOCALBIN)/swag  || \
+	GOBIN=$(LOCALBIN) go install  github.com/swaggo/swag/cmd/swag@$(SWAGGER_VERSION)
+
+
+.PHONY: install-golangci-lint
+install-golangci-lint: $(LOCALBIN) ## Download golangci lint locally if necessary.
+	test -s $(LOCALBIN)/golangci-lint  && $(LOCALBIN)/golangci-lint --version | grep -q $(GOLANG_LINT_VERSION) || \
+	GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANG_LINT_VERSION)
+
+
+.PHONY: install-gofumpt
+install-gofumpt: $(LOCALBIN) ## Download gofumpt locally if necessary.
+	test -s $(LOCALBIN)/gofumpt || \
+	GOBIN=$(LOCALBIN) go install mvdan.cc/gofumpt@$(GOFUMPT_VERSION)
