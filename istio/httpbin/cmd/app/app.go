@@ -18,6 +18,7 @@ func NewAppCommand(ctx context.Context) *cobra.Command {
 		Use:  "httpbin",
 		Long: `httpbin for mesh`,
 		Run: func(cmd *cobra.Command, args []string) {
+			klog.Infof("run with option:%+v", option)
 			if err := Run(ctx, option); err != nil {
 				klog.Exit(err)
 			}

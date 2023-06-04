@@ -9,7 +9,7 @@ const (
 	EnvServiceName = "SERVICE_NAME"
 	EnvPodName     = "POD_NAME"
 	EnvSubSystem   = "SUB_SYSTEM"
-	EnvNameSpace   = "NAME_SPACE"
+	EnvNameSpace   = "POD_NAMESPACE"
 )
 
 func GetAllEnvs() map[string]string {

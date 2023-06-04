@@ -29,11 +29,18 @@ func NewResponseFromContext(c *gin.Context) model.Response {
 	}
 
 	// Add  trace header
-	_, ok := response.Headers["x-service-trace"]
+	_, ok := response.Headers["x-httpbin-trace-host"]
 	if !ok {
-		response.Headers["x-service-trace"] = utils.GetHostName()
+		response.Headers["x-httpbin-trace-host"] = utils.GetHostName()
 	} else {
-		response.Headers["x-service-trace"] = response.Headers["x-service-trace"] + "/" + utils.GetHostName()
+		response.Headers["x-httpbin-trace-host"] = response.Headers["x-httpbin-trace-host"] + "/" + utils.GetHostName()
+	}
+
+	_, ok2 := response.Headers["x-httpbin-trace-service"]
+	if !ok2 {
+		response.Headers["x-httpbin-trace-service"] = utils.GetServiceName()
+	} else {
+		response.Headers["x-httpbin-trace-service"] = response.Headers["x-httpbin-trace-service"] + "/" + utils.GetServiceName()
 	}
 
 	for fk, fv := range form {

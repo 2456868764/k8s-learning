@@ -1,13 +1,12 @@
 package api
 
 import (
-	"fmt"
+	"github.com/SkyAPM/go2sky"
 	"io"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/SkyAPM/go2sky"
 
 	"k8s.io/klog/v2"
 
@@ -23,9 +22,15 @@ var defaultTraceHeaders = []string{
 	"X-B3-TraceId", "X-B3-SpanId", "X-B3-ParentSpanId", "X-B3-Sampled", "X-B3-Flags",
 	"uber-trace-id",
 	"jwt", "Authorization",
+	"X-Httpbin-Trace-Host",
+	"X-Httpbin-Trace-Service",
 }
 
 func Anything(c *gin.Context) {
+	// Simulate business call
+	r := rand.Intn(45) + 5
+	time.Sleep(time.Duration(r) * time.Millisecond)
+	// Return
 	response := NewResponseFromContext(c)
 	c.JSON(http.StatusOK, response)
 }
@@ -102,6 +107,10 @@ func ReponseAnyString(c *gin.Context) {
 func Service(c *gin.Context) {
 	nextServices := c.Query("services")
 	if len(nextServices) == 0 {
+		// Simulate business call
+		r := rand.Intn(45) + 5
+		time.Sleep(time.Duration(r) * time.Millisecond)
+		// Return
 		response := NewResponseFromContext(c)
 		c.JSON(http.StatusOK, response)
 		return
@@ -130,33 +139,57 @@ func Service(c *gin.Context) {
 			}
 		}
 	}
+
 	// Add service trace header
-	traceHeader, ok := lowerCaseHeader["x-service-trace"]
+	traceHeader, ok := lowerCaseHeader["x-httpbin-trace-host"]
 	if !ok {
-		lowerCaseHeader["x-service-trace"] = []string{utils.GetHostName()}
+		lowerCaseHeader["x-httpbin-trace-host"] = []string{utils.GetHostName()}
 	} else {
-		lowerCaseHeader["x-service-trace"] = []string{traceHeader[0] + "/" + utils.GetHostName()}
+		lowerCaseHeader["x-httpbin-trace-host"] = []string{traceHeader[0] + "/" + utils.GetHostName()}
+	}
+
+	traceHeader2, ok2 := lowerCaseHeader["x-httpbin-trace-service"]
+	if !ok2 {
+		lowerCaseHeader["x-httpbin-trace-service"] = []string{utils.GetServiceName()}
+	} else {
+		lowerCaseHeader["x-httpbin-trace-service"] = []string{traceHeader2[0] + "/" + utils.GetServiceName()}
 	}
 
 	req.Header = lowerCaseHeader
-	// 出去必须用这个携带 header
-	reqSpan, err := go2sky.GetGlobalTracer().CreateExitSpan(c.Request.Context(), "invoke", nextUrl, func(headerKey, headerValue string) error {
+	fn := func(req *http.Request) (*http.Response, error) {
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			klog.Error(err)
+		}
+		return resp, err
+	}
+	resp, err := traceHttpCall(c, req, nextUrl, fn)
+	var bodyBytes []byte
+	bodyBytes, _ = io.ReadAll(resp.Body)
+	c.Header("Content-Type", "application/json")
+	c.String(http.StatusOK, string(bodyBytes))
+}
+
+func traceHttpCall(c *gin.Context, req *http.Request, url string, fn func(req *http.Request) (*http.Response, error)) (*http.Response, error) {
+	tracer := go2sky.GetGlobalTracer()
+	if tracer == nil {
+		resp, err := fn(req)
+		return resp, err
+	}
+
+	reqSpan, err := go2sky.GetGlobalTracer().CreateExitSpan(c.Request.Context(), "invoke", url, func(headerKey, headerValue string) error {
 		req.Header.Set(headerKey, headerValue)
 		return nil
 	})
+	if err != nil {
+	}
 	reqSpan.SetComponent(2)
 	reqSpan.SetSpanLayer(v3.SpanLayer_RPCFramework) // rpc 调用
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		klog.Error(err)
-	}
-	var bodyBytes []byte
-	bodyBytes, _ = io.ReadAll(resp.Body)
+	resp, err2 := fn(req)
 	reqSpan.Tag(go2sky.TagHTTPMethod, http.MethodPost)
-	reqSpan.Tag(go2sky.TagURL, nextUrl)
-	reqSpan.Log(time.Now(), "[HttpRequest]", fmt.Sprintf("结束请求，响应结果：%s", string(bodyBytes)))
+	reqSpan.Tag(go2sky.TagURL, url)
 	reqSpan.End()
-	c.Header("Content-Type", "application/json")
-	c.String(http.StatusOK, string(bodyBytes))
+	return resp, err2
+
 }
