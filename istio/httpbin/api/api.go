@@ -1,20 +1,18 @@
 package api
 
 import (
-	"github.com/SkyAPM/go2sky"
 	"io"
 	"math/rand"
 	"net/http"
 	"strings"
 	"time"
 
-	"k8s.io/klog/v2"
-
-	v3 "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
-
+	"github.com/SkyAPM/go2sky"
 	"github.com/gin-gonic/gin"
+	"httpbin/pkg/logs"
 	"httpbin/pkg/model"
 	"httpbin/pkg/utils"
+	v3 "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
 )
 
 var defaultTraceHeaders = []string{
@@ -125,10 +123,10 @@ func Service(c *gin.Context) {
 	} else {
 		nextUrl = "http://" + services[0] + "/service?services=" + strings.Join(services[1:], ",")
 	}
-	klog.Infof("service call nexturl:%s", nextUrl)
+	logs.Infof("service call nexturl:%s", nextUrl)
 	req, err := http.NewRequest(c.Request.Method, nextUrl, c.Request.Body)
 	if err != nil {
-		klog.Error(err)
+		logs.Error(err)
 	}
 	lowerCaseHeader := make(http.Header)
 	for key, value := range headers {
@@ -160,7 +158,7 @@ func Service(c *gin.Context) {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			klog.Error(err)
+			logs.Error(err)
 		}
 		return resp, err
 	}

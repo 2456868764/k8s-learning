@@ -59,7 +59,6 @@ spec:
             - --trace-provider=skywalking
             - --skywalking-grpc-address=skywalking-oap-server.op-system.svc.cluster.local:11800
             - --sample-rate=1.0
-            - -v=4
           livenessProbe:
             httpGet:
               path: /prob/liveness
@@ -75,6 +74,8 @@ spec:
           env:
             - name: SERVICE_NAME
               value: bff
+            - name: VERSION
+              value: v1
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -155,7 +156,6 @@ spec:
             - --trace-provider=skywalking
             - --skywalking-grpc-address=skywalking-oap-server.op-system.svc.cluster.local:11800
             - --sample-rate=1.0
-            - -v=4
           livenessProbe:
             httpGet:
               path: /prob/liveness
@@ -171,6 +171,8 @@ spec:
           env:
             - name: SERVICE_NAME
               value: backend
+            - name: VERSION
+              value: v1
             - name: POD_NAME
               valueFrom:
                 fieldRef:

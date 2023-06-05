@@ -11,8 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"httpbin/pkg/logs"
 	"httpbin/pkg/options"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -165,7 +165,7 @@ func (m *metricMiddleWareBuilder) registerMetrics() {
 	for _, metricDef := range m.MetricsList {
 		metric := newMetric(metricDef, m.Subsystem, m.ConstLabels)
 		if err := prometheus.Register(metric); err != nil {
-			klog.Errorf("%s could not be registered in Prometheus", metricDef.Name)
+			logs.Errorf("%s could not be registered in Prometheus", metricDef.Name)
 		}
 		switch metricDef.ID {
 		case "reqCount":

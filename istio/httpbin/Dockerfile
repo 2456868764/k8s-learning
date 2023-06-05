@@ -28,7 +28,6 @@ RUN env
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -a -o httpbin cmd/main.go
 
 FROM alpine:3.17
-RUN apk add --no-cache tzdata
 WORKDIR /app
 ARG PKGNAME
 COPY --from=builder /app/httpbin .

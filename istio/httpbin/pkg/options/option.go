@@ -13,6 +13,7 @@ const (
 	TraceSkyWalking  TraceProviderType = "skywalking"
 	DefaultSubSystem                   = "App"
 	DefaultNameSpace                   = "default"
+	DefaultVersion                     = "v1"
 )
 
 type Option struct {
@@ -25,6 +26,7 @@ type Option struct {
 	InstanceName string
 	SubSystem    string
 	NameSpace    string
+	Version      string
 }
 
 func (o *Option) AddFlags(flags *pflag.FlagSet) {
@@ -48,6 +50,10 @@ func (o *Option) FillEnvs() {
 	o.NameSpace = utils.GetNameSpace()
 	if len(o.NameSpace) == 0 {
 		o.NameSpace = DefaultNameSpace
+	}
+	o.Version = utils.GetVersion()
+	if len(o.Version) == 0 {
+		o.Version = DefaultVersion
 	}
 }
 

@@ -109,7 +109,7 @@ echoLDFLAGS:
 all:  test build
 
 .PHONY: build
-build: ## Build binary with the httpbin.
+build: $(LOCALBIN)## Build binary with the httpbin.
 	CGO_ENABLED=0 GOOS=$(GOOS) go build -ldflags $(LDFLAGS) -o bin/httpbin cmd/main.go
 
 

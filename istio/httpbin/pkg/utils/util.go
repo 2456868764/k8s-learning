@@ -10,6 +10,7 @@ const (
 	EnvPodName     = "POD_NAME"
 	EnvSubSystem   = "SUB_SYSTEM"
 	EnvNameSpace   = "POD_NAMESPACE"
+	EnvVersion     = "VERSION"
 )
 
 func GetAllEnvs() map[string]string {
@@ -32,6 +33,10 @@ func GetHostName() string {
 
 func GetNameSpace() string {
 	return GetStringEnv(EnvNameSpace, "")
+}
+
+func GetVersion() string {
+	return GetStringEnv(EnvVersion, "")
 }
 
 func GetServiceName() string {

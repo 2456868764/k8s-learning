@@ -9,8 +9,8 @@ import (
 	"github.com/SkyAPM/go2sky"
 	"github.com/SkyAPM/go2sky/reporter"
 	"github.com/gin-gonic/gin"
+	"httpbin/pkg/logs"
 	"httpbin/pkg/options"
-	"k8s.io/klog/v2"
 	agentv3 "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
 )
 
@@ -27,7 +27,7 @@ func StartSkywalkingTracer(g *gin.Engine, option *options.Option) {
 
 	reporter, err := reporter.NewGRPCReporter(option.SkywalkingGrpcAddress)
 	if err != nil {
-		klog.Errorf("create gosky reporter failed! error:%v", err)
+		logs.Errorf("create gosky reporter failed! error:%v", err)
 	}
 	tracer, err := go2sky.NewTracer(option.ServiceName, go2sky.WithReporter(reporter),
 		go2sky.WithInstance(option.InstanceName),

@@ -3,13 +3,12 @@ package app
 import (
 	"context"
 	"flag"
-
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"httpbin/api"
+	"httpbin/pkg/logs"
 	"httpbin/pkg/middleware"
 	"httpbin/pkg/options"
-	"k8s.io/klog/v2"
 )
 
 func NewAppCommand(ctx context.Context) *cobra.Command {
@@ -18,9 +17,9 @@ func NewAppCommand(ctx context.Context) *cobra.Command {
 		Use:  "httpbin",
 		Long: `httpbin for mesh`,
 		Run: func(cmd *cobra.Command, args []string) {
-			klog.Infof("run with option:%+v", option)
+			logs.Infof("run with option:%+v", option)
 			if err := Run(ctx, option); err != nil {
-				klog.Exit(err)
+				logs.Fatal(err)
 			}
 		},
 	}
@@ -31,11 +30,14 @@ func NewAppCommand(ctx context.Context) *cobra.Command {
 }
 
 func Run(ctx context.Context, option *options.Option) error {
-	r := gin.Default()
+	r := gin.New()
 	// Start Trace
 	middleware.StartSkywalkingTracer(r, option)
 	// Start Metric
 	middleware.StartMetric(r, option)
+	// Start Log
+	middleware.StartLogger(r, option)
+
 	r.GET("/", api.Anything)
 	r.POST("/", api.Anything)
 	r.GET("/hostname", api.HostName)

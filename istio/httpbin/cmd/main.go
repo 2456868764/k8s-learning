@@ -2,17 +2,15 @@ package main
 
 import (
 	"fmt"
+	"httpbin/pkg/logs"
 	"os"
 
 	"httpbin/cmd/app"
-	"httpbin/pkg/logs"
 	"httpbin/pkg/signals"
 )
 
 func main() {
-	logs.InitLogs()
-	defer logs.FlushLogs()
-
+	logs.InitLogger()
 	ctx := signals.SetupSignalHandler()
 
 	if err := app.NewAppCommand(ctx).Execute(); err != nil {

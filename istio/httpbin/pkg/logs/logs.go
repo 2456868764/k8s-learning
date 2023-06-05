@@ -1,62 +1,133 @@
 package logs
 
 import (
-	"flag"
-	"fmt"
-	"log"
-	"time"
+	"sync"
 
-	"github.com/spf13/pflag"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/klog/v2"
+	"go.uber.org/zap"
 )
 
-const logFlushFreqFlagName = "log-flush-frequency"
+var (
+	logger      *zap.Logger
+	sugar       *zap.SugaredLogger
+	mutex       = &sync.Mutex{}
+	initialized = false
+)
 
-var logFlushFreq = pflag.Duration(logFlushFreqFlagName, 5*time.Second, "Maximum number of seconds between log flushes")
+type LogLevel uint32
 
-func init() {
-	klog.InitFlags(flag.CommandLine)
-}
+const (
+	LogLevelDebug LogLevel = iota
+	LogLevelInfo
+	LogLevelWarn
+	LogLevelError
+	LogLevelPanic
+	LogLevelFatal
+)
 
-// AddFlags registers this package's flags on arbitrary FlagSets, such that they point to the
-// same value as the global flags.
-func AddFlags(fs *pflag.FlagSet) {
-	fs.AddFlag(pflag.Lookup(logFlushFreqFlagName))
-}
-
-// KlogWriter serves as a bridge between the standard log package and the glog package.
-type KlogWriter struct{}
-
-// Write implements the io.Writer interface.
-func (writer KlogWriter) Write(data []byte) (n int, err error) {
-	klog.InfoDepth(1, string(data))
-	return len(data), nil
-}
-
-// InitLogs initializes logs the way we want for kubernetes.
-func InitLogs() {
-	log.SetOutput(KlogWriter{})
-	log.SetFlags(0)
-	// The default glog flush interval is 5 seconds.
-	go wait.Forever(klog.Flush, *logFlushFreq)
-}
-
-// FlushLogs flushes logs immediately.
-func FlushLogs() {
-	klog.Flush()
-}
-
-// NewLogger creates a new log.Logger which sends logs to klog.Info.
-func NewLogger(prefix string) *log.Logger {
-	return log.New(KlogWriter{}, prefix, 0)
-}
-
-// GlogSetter is a setter to set glog level.
-func GlogSetter(val string) (string, error) {
-	var level klog.Level
-	if err := level.Set(val); err != nil {
-		return "", fmt.Errorf("failed set klog.logging.verbosity %s: %v", val, err)
+func InitLogger() {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if initialized {
+		return
 	}
-	return fmt.Sprintf("successfully set klog.logging.verbosity to %s", val), nil
+	initialized = true
+	logger, _ = zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+	sugar = logger.Sugar()
+}
+
+func Logger() *zap.Logger {
+	if logger == nil {
+		InitLogger()
+	}
+	return logger
+}
+
+func Sugar() *zap.SugaredLogger {
+	if sugar == nil {
+		InitLogger()
+	}
+	return sugar
+}
+
+func log(level LogLevel, args ...interface{}) {
+	switch level {
+	case LogLevelDebug:
+		Sugar().Debug(args...)
+	case LogLevelInfo:
+		Sugar().Info(args...)
+	case LogLevelWarn:
+		Sugar().Warn(args...)
+	case LogLevelError:
+		Sugar().Error(args...)
+	case LogLevelPanic:
+		Sugar().Panic(args...)
+	case LogLevelFatal:
+		Sugar().Fatal(args...)
+	}
+}
+
+func logFormat(level LogLevel, format string, args ...interface{}) {
+	switch level {
+	case LogLevelDebug:
+		Sugar().Debugf(format, args...)
+	case LogLevelInfo:
+		Sugar().Infof(format, args...)
+	case LogLevelWarn:
+		Sugar().Warnf(format, args...)
+	case LogLevelError:
+		Sugar().Errorf(format, args...)
+	case LogLevelPanic:
+		Sugar().Panicf(format, args...)
+	case LogLevelFatal:
+		Sugar().Fatalf(format, args...)
+	}
+}
+
+func Debug(args ...interface{}) {
+	log(LogLevelDebug, args)
+}
+
+func Debugf(format string, args ...interface{}) {
+	logFormat(LogLevelDebug, format, args...)
+}
+
+func Info(args ...interface{}) {
+	log(LogLevelInfo, args)
+}
+
+func Infof(format string, args ...interface{}) {
+	logFormat(LogLevelInfo, format, args...)
+}
+
+func Warn(args ...interface{}) {
+	log(LogLevelWarn, args)
+}
+
+func Warnf(format string, args ...interface{}) {
+	logFormat(LogLevelWarn, format, args...)
+}
+
+func Error(args ...interface{}) {
+	log(LogLevelError, args)
+}
+
+func Errorf(format string, args ...interface{}) {
+	logFormat(LogLevelError, format, args...)
+}
+
+func Panic(args ...interface{}) {
+	log(LogLevelPanic, args)
+}
+
+func Panicf(format string, args ...interface{}) {
+	logFormat(LogLevelPanic, format, args)
+}
+
+func Fatal(args ...interface{}) {
+	log(LogLevelFatal, args)
+}
+
+func Fatalf(format string, args ...interface{}) {
+	logFormat(LogLevelFatal, format, args)
 }
