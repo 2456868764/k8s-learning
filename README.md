@@ -110,7 +110,7 @@
 
 * [shell](./tool/shell.md)
 * [tproxy](./tool/tproxy.md)
-
+* [K6 load testing](https://k6.io/)
 
 
 
