@@ -110,7 +110,7 @@ openssl req  -noout -text -in ./server.csr
 openssl x509  -noout -text -in ./server.crt
 ```
 
-9.在 API 服务器的启动参数中添加以下参数：
+9. 在 API 服务器的启动参数中添加以下参数：
 
 将生成的证书（ca.crt、server.crt , server.key）拷贝到自定义目录（例如：cert），并添加到 apiserver 的启动参数中：
 
@@ -149,7 +149,9 @@ openssl req -new -key cert/client.key -out cert/client.csr -subj "/CN=dev"
 openssl x509 -req -in cert/client.csr -CA cert/ca.crt -CAkey cert/ca.key -CAcreateserial -out cert/client.crt -days 365
 ```
 
-13. 在 goland 启动 api server 
+## 开发配置和测试
+
+1. 在 goland 启动 api server 
 
 编辑Run/Debug configuration 
 
@@ -179,7 +181,7 @@ etcd keeper 查看 etcd 内容
 
 ![img1.png](images/img1.png)
 
-14. curl 测试
+2. curl 测试
 
 ```shell
 $ curl --cacert cert/ca.crt --cert cert/client.crt --key cert/client.key https://127.0.0.1:6443/version
@@ -197,7 +199,7 @@ $ curl --cacert cert/ca.crt --cert cert/client.crt --key cert/client.key https:/
 }
 ```
 
-15. kubectl 
+3. kubectl 
 
 ```shell
 # 添加新集群（apiserver地址和ca证书）
@@ -245,12 +247,10 @@ nginx   0/1     Pending   0          13s   <none>   <none>   <none>           <n
 
 ## OpenApi Swagger导入
 
-把 api/openapi-spec/swagger.json 到入到 api 管理工具 apifox, 
+把 api/openapi-spec/swagger.json 到入到 api 管理工具 apifox 中
 
 ![img3.png](images/img3.png)
 
 ## Reference
-- 
-https://kubernetes.io/zh-cn/docs/reference/command-line-tools-reference/kube-apiserver
-- 
-https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/certificates/#distributing-self-signed-ca-certificate
+- https://kubernetes.io/zh-cn/docs/reference/command-line-tools-reference/kube-apiserver
+- https://kubernetes.io/zh-cn/docs/tasks/administer-cluster/certificates/#distributing-self-signed-ca-certificate
