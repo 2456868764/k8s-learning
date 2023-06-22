@@ -20,6 +20,7 @@
 * kubectl
 * etcd
 * Api-Server
+  * [本地开发环境准备](k8s/apiserver/prepare.md)
 * Scheduler-Server
 * Controller-Server
 
