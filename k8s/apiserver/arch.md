@@ -13,6 +13,7 @@ Kubernetes API的每个请求都会经过多阶段的访问控制之后才会被
 - 限流
 - 授权
 - 准入
+- 审计
 
 # 启动主流程分析
 
@@ -159,3 +160,45 @@ func Run(completeOptions completedServerRunOptions, stopCh <-chan struct{}) erro
 - KubeAPIServer：API 核心服务。实现认证、鉴权以及所有 Kubernetes 内置资源的 REST API 接口（诸如 Pod 和 Service 等资源的接口），如果请求未能找到对应的处理，则委托给 APIExtensionsServer 进行处理
 - APIExtensionsServer：API 扩展服务。处理 CustomResourceDefinitions（CRD）和 Custom Resource（CR）的 REST 请求（自定义资源的接口），如果请求仍不能被处理则委托给 404 Handler 处理
 
+```golang
+
+// CreateServerChain creates the apiservers connected via delegation.
+func CreateServerChain(completedOptions completedServerRunOptions) (*aggregatorapiserver.APIAggregator, error) {
+	
+	kubeAPIServerConfig, serviceResolver, pluginInitializer, err := CreateKubeAPIServerConfig(completedOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	// If additional API servers are added, they should be gated.
+	apiExtensionsConfig, err := createAPIExtensionsConfig(*kubeAPIServerConfig.GenericConfig, kubeAPIServerConfig.ExtraConfig.VersionedInformers, pluginInitializer, completedOptions.ServerRunOptions, completedOptions.MasterCount,
+		serviceResolver, webhook.NewDefaultAuthenticationInfoResolverWrapper(kubeAPIServerConfig.ExtraConfig.ProxyTransport, kubeAPIServerConfig.GenericConfig.EgressSelector, kubeAPIServerConfig.GenericConfig.LoopbackClientConfig, kubeAPIServerConfig.GenericConfig.TracerProvider))
+	if err != nil {
+		return nil, err
+	}
+
+	notFoundHandler := notfoundhandler.New(kubeAPIServerConfig.GenericConfig.Serializer, genericapifilters.NoMuxAndDiscoveryIncompleteKey)
+	apiExtensionsServer, err := createAPIExtensionsServer(apiExtensionsConfig, genericapiserver.NewEmptyDelegateWithCustomHandler(notFoundHandler))
+	if err != nil {
+		return nil, err
+	}
+
+	kubeAPIServer, err := CreateKubeAPIServer(kubeAPIServerConfig, apiExtensionsServer.GenericAPIServer)
+	if err != nil {
+		return nil, err
+	}
+
+	// aggregator comes last in the chain
+	aggregatorConfig, err := createAggregatorConfig(*kubeAPIServerConfig.GenericConfig, completedOptions.ServerRunOptions, kubeAPIServerConfig.ExtraConfig.VersionedInformers, serviceResolver, kubeAPIServerConfig.ExtraConfig.ProxyTransport, pluginInitializer)
+	if err != nil {
+		return nil, err
+	}
+	aggregatorServer, err := createAggregatorServer(aggregatorConfig, kubeAPIServer.GenericAPIServer, apiExtensionsServer.Informers)
+	if err != nil {
+		// we don't need special handling for innerStopCh because the aggregator server doesn't create any go routines
+		return nil, err
+	}
+
+	return aggregatorServer, nil
+}
+```
