@@ -30,7 +30,7 @@
 
 
 ### 5.k8s安全
-* [RBAC](./doc/security.md)
+* [RBAC](./security/security.md)
 * NetworkPolicy
 * SecurtiyContext
 
