@@ -48,8 +48,8 @@ HTTP 请求发给 API 服务器时，插件会将以下属性关联到请求本�
 ```golang
 // Authentication.ApplyTo requires already applied OpenAPIConfig and EgressSelector if present
 if lastErr = s.Authentication.ApplyTo(&genericConfig.Authentication, genericConfig.SecureServing, genericConfig.EgressSelector, genericConfig.OpenAPIConfig, genericConfig.OpenAPIV3Config, clientgoExternalClient, versionedInformers); lastErr != nil {
-return
-
+    return
+}
 ```
 
 ### 真正初始化位置
@@ -154,6 +154,7 @@ type Request interface {
 
 
 ### tokenunion.New(tokenAuthenticators...) 分析
+
 文件： /vendor/k8s.io/apiserver/pkg/authentication/token/union/union.go
 
 ```golang
