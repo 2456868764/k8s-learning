@@ -23,6 +23,7 @@
   * [本地开发环境准备](k8s/apiserver/prepare.md)
   * [架构和启动流程分析](k8s/apiserver/arch.md)
   * [通用配置创建](k8s/apiserver/generic_config.md)
+  * [认证](k8s/apiserver/authentication.md)
 * Scheduler-Server
 * Controller-Server
 

@@ -96,16 +96,25 @@ genericConfig, versionedInformers, serviceResolver, pluginInitializers, admissio
 	}
 	versionedInformers = clientgoinformers.NewSharedInformerFactory(clientgoExternalClient, 10*time.Minute)
 
+	// 认证
 	// Authentication.ApplyTo requires already applied OpenAPIConfig and EgressSelector if present
 	if lastErr = s.Authentication.ApplyTo(&genericConfig.Authentication, genericConfig.SecureServing, genericConfig.EgressSelector, genericConfig.OpenAPIConfig, genericConfig.OpenAPIV3Config, clientgoExternalClient, versionedInformers); lastErr != nil {
-		return
+	return
 	}
 
+	// 授权
+	genericConfig.Authorization.Authorizer, genericConfig.RuleResolver, err = BuildAuthorizer(s, genericConfig.EgressSelector, versionedInformers)
+	if err != nil {
+	lastErr = fmt.Errorf("invalid authorization config: %v", err)
+	return
+	}
+
+	// 审计
 	lastErr = s.Audit.ApplyTo(genericConfig)
 	if lastErr != nil {
 		return
 	}
-
+	// 准入控制
 	admissionConfig := &kubeapiserveradmission.Config{
 		ExternalInformers:    versionedInformers,
 		LoopbackClientConfig: genericConfig.LoopbackClientConfig,
