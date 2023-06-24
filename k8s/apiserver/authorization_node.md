@@ -4,7 +4,7 @@
 
 节点鉴权是一种特殊用途的鉴权模式，专门对 kubelet 发出的 API 请求进行授权。
 
-四种规则
+## 四种规则
 - 如果不是 node 的请求则拒绝
 - 如果 nodeName 没有找到则拒绝
 - 如果请求是 configmap, secret, pod, pv, pvc 需要校验
