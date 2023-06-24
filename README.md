@@ -25,6 +25,7 @@
   * [通用配置创建](k8s/apiserver/generic_config.md)
   * [Authentication认证](k8s/apiserver/authentication.md)
   * [Authorization 鉴权概述](k8s/apiserver/authorization.md)
+  * [Authorization Node 鉴权](k8s/apiserver/authorization_node.md)
 * Scheduler-Server
 * Controller-Server
 
