@@ -26,6 +26,7 @@
   * [Authentication认证](k8s/apiserver/authentication.md)
   * [Authorization 鉴权概述](k8s/apiserver/authorization.md)
   * [Authorization Node 鉴权](k8s/apiserver/authorization_node.md)
+  * [Authorization RBAC 鉴权](k8s/apiserver/authorization_rbac.md)
 * Scheduler-Server
 * Controller-Server
 
