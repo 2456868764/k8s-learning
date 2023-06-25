@@ -112,6 +112,10 @@
   * [Pilot 源码分析]
   * [Ambient 模式原理分析]
 
+## FinOps
+* FinOps 
+* Crane
+
 ## 工具
 
 * [shell](./tool/shell.md)
