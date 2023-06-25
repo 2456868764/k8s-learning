@@ -316,9 +316,9 @@ func MatchesUsername(namespace, name string, username string) bool {
 服务账户（ServiceAccount） 的用户名前缀为 system:serviceaccount:，属于前缀为 system:serviceaccounts: 的用户组。
 
 > 说明：
-> system:serviceaccount: （单数）是用于服务账户用户名的前缀；
-> system:serviceaccounts: （复数）是用于服务账户组名的前缀。
->
+> - system:serviceaccount: （单数）是用于服务账户用户名的前缀；
+> - system:serviceaccounts: （复数）是用于服务账户组名的前缀。
+
 
 - 对于 kube-system 名字空间中的默认服务账户：
 
@@ -376,8 +376,8 @@ subjects:
 
 ```
 
-serviceAccountName 格式 ：  system:serviceaccount: + namespace + ":" + name
-serviceAccountGroup 格式：  system:serviceaccounts: + namespace
+- serviceAccountName 格式 ：  system:serviceaccount: + namespace + ":" + name
+- serviceAccountGroup 格式：  system:serviceaccounts: + namespace
 
 MatchesUsername 这个 func 代码就很容易理解
 
