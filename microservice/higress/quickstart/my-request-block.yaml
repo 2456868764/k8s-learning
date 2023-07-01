@@ -1,0 +1,10 @@
+apiVersion: extensions.higress.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: my-request-block-test
+  namespace: higress-system
+spec:
+  defaultConfig:
+    block_urls:
+      - "swagger.html"
+  url: oci://docker.io/2456868764/request-block:1.0.0  # 之前构建和推送的 image 地址

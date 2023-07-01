@@ -1,0 +1,172 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: mysql
+  labels:
+    name: mysql
+spec:
+  replicas: 1
+  selector:
+    name: mysql
+  template:
+    metadata:
+      labels:
+        name: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: nacos/nacos-mysql:5.7
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: MYSQL_DATABASE
+              value: "nacos_devtest"
+            - name: MYSQL_USER
+              value: "nacos"
+            - name: MYSQL_PASSWORD
+              value: "nacos"
+      volumes:
+        - name: mysql-data
+          hostPath:
+            path: /var/lib/mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    name: mysql
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    name: mysql
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nacos-headless
+  labels:
+    app: nacos-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 8848
+      name: server
+      targetPort: 8848
+    - port: 9848
+      name: client-rpc
+      targetPort: 9848
+    - port: 9849
+      name: raft-rpc
+      targetPort: 9849
+    ## 兼容1.4.x版本的选举端口
+    - port: 7848
+      name: old-raft-rpc
+      targetPort: 7848
+  selector:
+    app: nacos
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nacos-cm
+data:
+  mysql.host: "mysql"
+  mysql.db.name: "nacos_devtest"
+  mysql.port: "3306"
+  mysql.user: "nacos"
+  mysql.password: "nacos"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nacos
+spec:
+  serviceName: nacos-headless
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nacos
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                      - nacos
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: nacos
+          imagePullPolicy: Always
+          image: nacos/nacos-server:latest
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8848
+              name: client
+            - containerPort: 9848
+              name: client-rpc
+            - containerPort: 9849
+              name: raft-rpc
+            - containerPort: 7848
+              name: old-raft-rpc
+          env:
+            - name: NACOS_REPLICAS
+              value: "3"
+            - name: MYSQL_SERVICE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-cm
+                  key: mysql.host
+            - name: MYSQL_SERVICE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-cm
+                  key: mysql.db.name
+            - name: MYSQL_SERVICE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-cm
+                  key: mysql.port
+            - name: MYSQL_SERVICE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-cm
+                  key: mysql.user
+            - name: MYSQL_SERVICE_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: nacos-cm
+                  key: mysql.password
+            - name: SPRING_DATASOURCE_PLATFORM
+              value: "mysql"
+            - name: NACOS_SERVER_PORT
+              value: "8848"
+            - name: NACOS_APPLICATION_PORT
+              value: "8848"
+            - name: PREFER_HOST_MODE
+              value: "hostname"
+            - name: NACOS_SERVERS
+              value: "nacos-0.nacos-headless.default.svc.cluster.local:8848 nacos-1.nacos-headless.default.svc.cluster.local:8848 nacos-2.nacos-headless.default.svc.cluster.local:8848"
+  selector:
+    matchLabels:
+      app: nacos
+
+
