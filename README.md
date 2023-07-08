@@ -27,6 +27,7 @@
   * [Authorization 鉴权概述](k8s/apiserver/authorization.md)
   * [Authorization Node 鉴权](k8s/apiserver/authorization_node.md)
   * [Authorization RBAC 鉴权](k8s/apiserver/authorization_rbac.md)
+  * [Audit 审计](k8s/apiserver/auditing.md)
 * Scheduler-Server
 * Controller-Server
 
