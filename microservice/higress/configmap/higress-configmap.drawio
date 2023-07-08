@@ -1,0 +1,235 @@
+<mxfile host="app.diagrams.net" modified="2023-07-05T09:36:31.128Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" etag="zdVY79ZI8RJIzk0RXRI5" version="21.3.8" type="device">
+  <diagram name="第 1 页" id="unpgdNp03zWTZyqTGpk8">
+    <mxGraphModel dx="820" dy="517" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sFhenS89rDF214ozOBOu-1" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;higress-config&lt;/font&gt;" style="text;strokeColor=#82b366;align=left;fillColor=#d5e8d4;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="10" y="110" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-2" value="&lt;div style=&quot;font-size: 15px;&quot;&gt;&lt;div style=&quot;background-color:#2b2b2b;color:#a9b7c6;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;&lt;pre&gt;&lt;div style=&quot;font-family: &amp;quot;JetBrains Mono&amp;quot;, monospace; font-size: 9.8pt;&quot;&gt;&lt;pre&gt;&lt;div style=&quot;font-family: &amp;quot;JetBrains Mono&amp;quot;, monospace; font-size: 9.8pt;&quot;&gt;&lt;pre&gt;apiVersion: v1&lt;br&gt;&lt;span style=&quot;color:#cc7832;&quot;&gt;kind&lt;/span&gt;: ConfigMap&lt;br&gt;&lt;span style=&quot;color:#cc7832;&quot;&gt;metadata&lt;/span&gt;:&lt;br&gt;  &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: higress-config&lt;br&gt;  &lt;span style=&quot;color:#cc7832;&quot;&gt;namespace&lt;/span&gt;: higress-system&lt;br&gt;&lt;span style=&quot;color:#cc7832;&quot;&gt;data&lt;/span&gt;:&lt;br&gt;  &lt;span style=&quot;color:#cc7832;&quot;&gt;higress&lt;/span&gt;: |-&lt;br&gt;    tracing:&lt;br&gt;      sampling: 100&lt;br&gt;      enable: true&lt;br&gt;      timeout: 800&lt;br&gt;      skywalking:&lt;br&gt;       service: skywalking-oap-server.op-system.svc.cluster.local&lt;br&gt;       port: 11800&lt;/pre&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;" style="text;align=left;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=15;" parent="1" vertex="1">
+          <mxGeometry x="10" y="160" width="520" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-3" value="&lt;span style=&quot;font-size: 18px;&quot;&gt;envoyFilter&lt;/span&gt;" style="text;strokeColor=#82b366;align=left;fillColor=#d5e8d4;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="612.62" y="120" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-4" value="&lt;div style=&quot;font-size: 15px;&quot;&gt;&lt;div style=&quot;background-color:#2b2b2b;color:#a9b7c6;font-family:&#39;JetBrains Mono&#39;,monospace;font-size:9.8pt;&quot;&gt;&lt;pre&gt;apiVersion: networking.istio.io/v1alpha3&lt;br&gt;&lt;span style=&quot;color:#cc7832;&quot;&gt;kind&lt;/span&gt;: EnvoyFilter&lt;br&gt;&lt;span style=&quot;color:#cc7832;&quot;&gt;metadata&lt;/span&gt;:&lt;br&gt;  &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: higress-trace&lt;br&gt;  &lt;span style=&quot;color:#cc7832;&quot;&gt;namespace&lt;/span&gt;: higress-system&lt;br&gt;&lt;span style=&quot;color:#cc7832;&quot;&gt;spec&lt;/span&gt;:&lt;br&gt;  &lt;span style=&quot;color:#cc7832;&quot;&gt;configPatches&lt;/span&gt;:&lt;br&gt;    - &lt;span style=&quot;color:#cc7832;&quot;&gt;applyTo&lt;/span&gt;: NETWORK_FILTER&lt;br&gt;      &lt;span style=&quot;color:#cc7832;&quot;&gt;match&lt;/span&gt;:&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;context&lt;/span&gt;: GATEWAY&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;listener&lt;/span&gt;:&lt;br&gt;          &lt;span style=&quot;color:#cc7832;&quot;&gt;filterChain&lt;/span&gt;:&lt;br&gt;            &lt;span style=&quot;color:#cc7832;&quot;&gt;filter&lt;/span&gt;:&lt;br&gt;              &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: envoy.filters.network.http_connection_manager&lt;br&gt;      &lt;span style=&quot;color:#cc7832;&quot;&gt;patch&lt;/span&gt;:&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;operation&lt;/span&gt;: MERGE&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;value&lt;/span&gt;:&lt;br&gt;          &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: envoy.filters.network.http_connection_manager&lt;br&gt;          &lt;span style=&quot;color:#cc7832;&quot;&gt;typed_config&lt;/span&gt;:&lt;br&gt;            &lt;span style=&quot;color:#cc7832;&quot;&gt;&#39;@type&#39;&lt;/span&gt;: type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager&lt;br&gt;            &lt;span style=&quot;color:#cc7832;&quot;&gt;tracing&lt;/span&gt;:&lt;br&gt;              &lt;span style=&quot;color:#cc7832;&quot;&gt;provider&lt;/span&gt;:&lt;br&gt;                &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: envoy.tracers.skywalking&lt;br&gt;                &lt;span style=&quot;color:#cc7832;&quot;&gt;typed_config&lt;/span&gt;:&lt;br&gt;                  &lt;span style=&quot;color:#cc7832;&quot;&gt;&#39;@type&#39;&lt;/span&gt;: type.googleapis.com/envoy.config.trace.v3.SkyWalkingConfig&lt;br&gt;                  &lt;span style=&quot;color:#cc7832;&quot;&gt;client_config&lt;/span&gt;:&lt;br&gt;                    &lt;span style=&quot;color:#cc7832;&quot;&gt;service_name&lt;/span&gt;: higress-gateway.higress-system&lt;br&gt;                  &lt;span style=&quot;color:#cc7832;&quot;&gt;grpc_service&lt;/span&gt;:&lt;br&gt;                    &lt;span style=&quot;color:#cc7832;&quot;&gt;envoy_grpc&lt;/span&gt;:&lt;br&gt;                      &lt;span style=&quot;color:#cc7832;&quot;&gt;cluster_name&lt;/span&gt;: outbound|11800||skywalking-oap-server.op-system.svc.cluster.local&lt;br&gt;                    &lt;span style=&quot;color:#cc7832;&quot;&gt;timeout&lt;/span&gt;: 0.800s&lt;br&gt;              &lt;span style=&quot;color:#cc7832;&quot;&gt;random_sampling&lt;/span&gt;:&lt;br&gt;                &lt;span style=&quot;color:#cc7832;&quot;&gt;value&lt;/span&gt;: 100&lt;br&gt;    - &lt;span style=&quot;color:#cc7832;&quot;&gt;applyTo&lt;/span&gt;: HTTP_FILTER&lt;br&gt;      &lt;span style=&quot;color:#cc7832;&quot;&gt;match&lt;/span&gt;:&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;context&lt;/span&gt;: GATEWAY&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;listener&lt;/span&gt;:&lt;br&gt;          &lt;span style=&quot;color:#cc7832;&quot;&gt;filterChain&lt;/span&gt;:&lt;br&gt;            &lt;span style=&quot;color:#cc7832;&quot;&gt;filter&lt;/span&gt;:&lt;br&gt;              &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: envoy.filters.network.http_connection_manager&lt;br&gt;              &lt;span style=&quot;color:#cc7832;&quot;&gt;subFilter&lt;/span&gt;:&lt;br&gt;                &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: envoy.filters.http.router&lt;br&gt;      &lt;span style=&quot;color:#cc7832;&quot;&gt;patch&lt;/span&gt;:&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;operation&lt;/span&gt;: MERGE&lt;br&gt;        &lt;span style=&quot;color:#cc7832;&quot;&gt;value&lt;/span&gt;:&lt;br&gt;          &lt;span style=&quot;color:#cc7832;&quot;&gt;name&lt;/span&gt;: envoy.filters.http.router&lt;br&gt;          &lt;span style=&quot;color:#cc7832;&quot;&gt;typed_config&lt;/span&gt;:&lt;br&gt;            &lt;span style=&quot;color:#cc7832;&quot;&gt;&#39;@type&#39;&lt;/span&gt;: type.googleapis.com/envoy.extensions.filters.http.router.v3.Router&lt;br&gt;            &lt;span style=&quot;color:#cc7832;&quot;&gt;start_child_span&lt;/span&gt;: true&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;" style="text;align=left;html=1;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=15;" parent="1" vertex="1">
+          <mxGeometry x="610" y="130" width="709" height="790" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-6" value="" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0.6;dx=40;notch=0;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="524" y="170" width="86" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-12" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="1220" width="290" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-13" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="440" y="1240" width="450" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-14" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1280" width="400" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-15" value="&lt;span style=&quot;font-size: 18px;&quot;&gt;IngressConfig&lt;/span&gt;" style="text;strokeColor=#82b366;align=left;fillColor=#d5e8d4;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="80" y="1190" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-17" value="&lt;span style=&quot;font-size: 18px;&quot;&gt;ConfigmapMgr&lt;/span&gt;" style="text;strokeColor=#82b366;align=left;fillColor=#d5e8d4;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="440" y="1210" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-18" value="&lt;span style=&quot;font-size: 18px;&quot;&gt;TracingController&lt;/span&gt;" style="text;strokeColor=#6c8ebf;align=left;fillColor=#dae8fc;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1240" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fillColor=#ffff88;strokeColor=#EA6B66;" parent="1" source="sFhenS89rDF214ozOBOu-19" target="sFhenS89rDF214ozOBOu-30" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-32" value="List/Watch" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="sFhenS89rDF214ozOBOu-31" vertex="1" connectable="0">
+          <mxGeometry x="0.0625" relative="1" as="geometry">
+            <mxPoint x="1" y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-19" value="higressConfigController" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="563.12" y="1250" width="279" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-20" value="&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; itemControllers" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;align=left;" parent="1" vertex="1">
+          <mxGeometry x="660" y="1410" width="187.5" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-21" value="itemEventHandler" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="650" y="1570" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-22" value="XDSUpdater" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="180" y="1570" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-23" value="configmapMgr" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="180" y="1432.5" width="130" height="37.5" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-25" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;核心流程：&lt;br&gt;&lt;br&gt;1. 监控 higres_config 变更&lt;br&gt;2. 构建 EnvoyFilter&lt;br&gt;3. 实时下发 EnvoyFilter&lt;/font&gt;" style="text;strokeColor=#d79b00;align=left;fillColor=#ffe6cc;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="80" y="977.5" width="300" height="122.5" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-26" value="List" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=18;" parent="1" vertex="1">
+          <mxGeometry x="80" y="1260" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-27" value="AddOrUpdateHigressconfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="440" y="1335.25" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-28" value="聚合EnvoyFilters" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="190" y="1260" width="110" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-30" value="higress-config" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="603.87" y="1120" width="197.5" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-33" value="tracing" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d0cee2;strokeColor=#56517e;" parent="1" vertex="1">
+          <mxGeometry x="805" y="1410" width="42.5" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-35" value="ConstructEvnoyFilters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="440" y="1435" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-42" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.812;entryY=-0.044;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.053;exitY=1.183;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=#EA6B66;" parent="1" source="sFhenS89rDF214ozOBOu-19" target="sFhenS89rDF214ozOBOu-27" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="1300" as="sourcePoint" />
+            <mxPoint x="660" y="1300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-43" value="通知更新" style="edgeLabel;resizable=0;html=1;align=center;verticalAlign=middle;" parent="sFhenS89rDF214ozOBOu-42" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-45" value="higressConfig" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="663" y="1325" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-46" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#EA6B66;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="sFhenS89rDF214ozOBOu-27" target="sFhenS89rDF214ozOBOu-45" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="1335.25" as="sourcePoint" />
+            <mxPoint x="640" y="1383.25" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-47" value="更新" style="edgeLabel;resizable=0;html=1;align=center;verticalAlign=middle;" parent="sFhenS89rDF214ozOBOu-46" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-48" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#EA6B66;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="sFhenS89rDF214ozOBOu-20" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="630" y="1360" as="sourcePoint" />
+            <mxPoint x="673" y="1365" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="630" y="1440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-49" value="校验和通知更新" style="edgeLabel;resizable=0;html=1;align=center;verticalAlign=middle;" parent="sFhenS89rDF214ozOBOu-48" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-50" value="ValidateHigressconfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1340.5" width="170" height="34.75" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-51" value="GetName" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1300" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-52" value="AddOrUpdateHigressConfig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1386" width="170" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-53" value="RegisterItemEventHandler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1500" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-54" value="tracing" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fad9d5;strokeColor=#ae4132;" parent="1" vertex="1">
+          <mxGeometry x="1210" y="1372.5" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-55" value="ConstructEvnoyFilters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="960" y="1440" width="170" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-57" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#EA6B66;" parent="1" source="sFhenS89rDF214ozOBOu-52" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1141" y="1401" as="sourcePoint" />
+            <mxPoint x="1210" y="1404" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-58" value="更新" style="edgeLabel;resizable=0;html=1;align=center;verticalAlign=middle;" parent="sFhenS89rDF214ozOBOu-57" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-61" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#EA6B66;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="847.5" y="1426" as="sourcePoint" />
+            <mxPoint x="960" y="1404.5" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="910" y="1405" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-62" value="更新事件" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#0000FF;" parent="1" target="sFhenS89rDF214ozOBOu-21" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1160" y="1410" as="sourcePoint" />
+            <mxPoint x="1241" y="1470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1160" y="1585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-63" value="更新事件" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#3333FF;" parent="1" source="sFhenS89rDF214ozOBOu-21" target="sFhenS89rDF214ozOBOu-22" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="1450" as="sourcePoint" />
+            <mxPoint x="600" y="1400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-64" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#67AB9F;" parent="1" target="sFhenS89rDF214ozOBOu-55" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="848" y="1430" as="sourcePoint" />
+            <mxPoint x="960" y="1416.5" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="910" y="1460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-65" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#67AB9F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="sFhenS89rDF214ozOBOu-23" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="1455" as="sourcePoint" />
+            <mxPoint x="440" y="1453" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-66" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#67AB9F;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="sFhenS89rDF214ozOBOu-28" target="sFhenS89rDF214ozOBOu-23" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="1320" as="sourcePoint" />
+            <mxPoint x="380" y="1320" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-68" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#67AB9F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="610" y="1457" as="sourcePoint" />
+            <mxPoint x="660" y="1457" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-69" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#67AB9F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="150" y="1280" as="sourcePoint" />
+            <mxPoint x="190" y="1280" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-70" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#EA6B66;" parent="1" target="sFhenS89rDF214ozOBOu-50" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="848" y="1420" as="sourcePoint" />
+            <mxPoint x="959.5" y="1398" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="910" y="1363" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-71" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;如何扩展：&lt;br&gt;&lt;br&gt;1. 实现接口&amp;nbsp; ItemController&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;&lt;br&gt;&lt;/span&gt;2. 添加到 ConfigmapMgr itemControllers&lt;br&gt;&lt;/font&gt;" style="text;strokeColor=#d79b00;align=left;fillColor=#ffe6cc;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="77" y="1720" width="393" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-74" value="" style="endArrow=classic;html=1;rounded=0;strokeColor=#67AB9F;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="sFhenS89rDF214ozOBOu-54" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1130" y="1457" as="sourcePoint" />
+            <mxPoint x="1180" y="1457" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1270" y="1457" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFhenS89rDF214ozOBOu-75" value="gzip" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d0cee2;strokeColor=#56517e;" parent="1" vertex="1">
+          <mxGeometry x="805" y="1440" width="42.5" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="bcxl_wUj7y2zmJQ6WOgW-1" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;解决什么问题？&lt;br&gt;&lt;br&gt;&lt;/font&gt;" style="text;strokeColor=#d79b00;align=left;fillColor=#ffe6cc;html=1;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="10" y="40" width="300" height="52.5" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

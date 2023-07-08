@@ -20,17 +20,17 @@ spec:
             '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
             tracing:
               provider:
-                name: envoy.tracers.skywalking
+                name: envoy.tracers.zipkin
                 typed_config:
-                  '@type': type.googleapis.com/envoy.config.trace.v3.SkyWalkingConfig
-                  client_config:
-                    service_name: higress-gateway.higress-system
-                  grpc_service:
-                    envoy_grpc:
-                      cluster_name: outbound|11800||skywalking-oap-server.op-system.svc.cluster.local
-                    timeout: 0.650s
+                  '@type': type.googleapis.com/envoy.config.trace.v3.ZipkinConfig
+                  collector_cluster: outbound|9411||zipkin.op-system.svc.cluster.local
+                  collector_endpoint: "/api/v2/spans"
+                  shared_span_context: true
+                  collector_hostname: "higress-gateway"
+                  collector_endpoint_version: HTTP_JSON
+                  split_spans_for_request: true
               random_sampling:
-                value: 80
+                value: 100
     - applyTo: HTTP_FILTER
       match:
         context: GATEWAY

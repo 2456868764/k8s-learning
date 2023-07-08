@@ -20,17 +20,16 @@ spec:
             '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
             tracing:
               provider:
-                name: envoy.tracers.skywalking
+                name: envoy.tracers.opentelemetry
                 typed_config:
-                  '@type': type.googleapis.com/envoy.config.trace.v3.SkyWalkingConfig
-                  client_config:
-                    service_name: higress-gateway.higress-system
+                  '@type': type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig
+                  service_name: higress-gateway.higress-system
                   grpc_service:
                     envoy_grpc:
-                      cluster_name: outbound|11800||skywalking-oap-server.op-system.svc.cluster.local
-                    timeout: 0.650s
+                      cluster_name: outbound|4317||jaeger-collector.op-system.svc.cluster.local
+                    timeout: 0.250s
               random_sampling:
-                value: 80
+                value: 100
     - applyTo: HTTP_FILTER
       match:
         context: GATEWAY
