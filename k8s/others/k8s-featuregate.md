@@ -304,7 +304,7 @@ func init() {
 		utilfeature.DefaultFeatureGate.Enabled(features.CraneClusterNodePrediction),
 		utilfeature.DefaultFeatureGate.Enabled(features.CraneAnalysis),
 		utilfeature.DefaultFeatureGate.Enabled(features.CraneTimeSeriesPrediction)); err != nil {
-		klog.Exit(err, "unable to create webhook", "webhook", "TimeSeriesPrediction")
+		logs.Exit(err, "unable to create webhook", "webhook", "TimeSeriesPrediction")
 	}
 
 ```
