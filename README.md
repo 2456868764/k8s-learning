@@ -57,7 +57,7 @@
 * Cilium
 
 ### 9. k8s其他特性
-* [k8s 特性门](./k8s/others/k8s-featuregate.md) 
+* [k8s 特性门控](./k8s/others/k8s-featuregate.md) 
 
 
 ## Operator开发
