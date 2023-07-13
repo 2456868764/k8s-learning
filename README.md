@@ -30,6 +30,7 @@
   * [Audit 审计](k8s/apiserver/auditing.md)
   * [Admission 准入控制器](k8s/apiserver/admission.md)
   * [API Server 链式初始化](k8s/apiserver/server_chain.md)
+  * [KubeApiServer 路由注册](k8s/apiserver/kube_api_server.md)
 * Scheduler-Server
 * Controller-Server
 
