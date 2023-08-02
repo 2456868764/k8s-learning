@@ -91,3 +91,48 @@ spec:
         pathType: Prefix
 ```
 还可以基于 OpenKruise Rollout 让灰度发布和服务部署过程联动，从而实现渐进式交付，具体可以参考这篇文章 [《Higress & Kruise Rollout: 渐进式交付为应用发布保驾护航》](https://mp.weixin.qq.com/s/vqwAUITNq9_twYHWX_5ZDg)
+
+
+# secrets
+1. 创建Secret
+
+```shell
+ 方法一
+[root@k8s-master ~]# echo -n 'admin' > ./username.txt
+[root@k8s-master ~]# echo -n '1f2d1e2e67df' > ./password.txt
+[root@k8s-master ~]# kubectl create secret generic db-user-pass \
+> --from-file=username=./username.txt --from-file=password=./password.txt
+secret/db-user-pass created
+
+# 方法二
+[root@k8s-master ~]# kubectl create secret generic db-user-pass \
+> --from-literal=username=devuser --from-literal=password='S!B\*d$zDsb='
+secret/db-user-pass created
+```
+2. 解码Secret
+
+```shell
+[root@k8s-master ~]# kubectl get secret db-user-pass -o jsonpath='{.data}'
+{"password":"MWYyZDFlMmU2N2Rm","username":"YWRtaW4="}[root@k8s-master ~]#
+
+# 为了避免在shell历史记录中存储Secret的编码值，建议执行如下命令
+[root@k8s-master ~]# kubectl get secret db-user-pass -o jsonpath='{.data.username}' | base64 --decode
+admin[root@k8s-master ~]#
+[root@k8s-master ~]# kubectl get secret db-user-pass -o jsonpath='{.data.password}' | base64 --decode
+1f2d1e2e67df[root@k8s-master ~]#
+```
+
+3. 使用stringData字段可以将一个非base64编码的字符串直接放入Secret中，当创建或更新该Secret时，此字段将被编码。
+
+```yaml
+piVersion: v1
+kind: Secret
+metadata:
+  name: mysecret-stringdata
+type: Opaque
+stringData:
+  config.yaml: |
+    apiUrl: "https://my.api.com/api/v1"
+    username: devsuer
+    password: Nsjhudt75&
+```
