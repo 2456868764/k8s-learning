@@ -34,6 +34,7 @@
   * [KubeApiServer RESTStorage 初始化](k8s/apiserver/rest_storage.md)
   * [Pod RESTStorage](k8s/apiserver/pod_rest_storage.md)
 * Scheduler-Server
+  *  [调度器概述](k8s/scheduler/scheduler_arch.md)
 * Controller-Server
 
 ### 4.k8s基本对象
