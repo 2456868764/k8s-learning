@@ -1,12 +1,36 @@
-# 调度概览
+# 调度器原理
 
 文档位置： https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/
 
 调度器通过 Kubernetes 的监测（Watch）机制来发现集群中新创建且尚未被调度到节点上的 Pod。 调度器会将所发现的每一个未调度的 Pod 调度到一个合适的节点上来运行。 
 
-## kube-scheduler
+## 调度概览
 
-kube-scheduler 是 Kubernetes 集群的默认调度器，并且是集群 控制面 的一部分。 如果你真得希望或者有这方面的需求，kube-scheduler 在设计上允许你自己编写一个调度组件并替换原有的 kube-scheduler。
+1. 调度概览
+![img.png](images/img4.png)
+
+2. 调度时机
+
+![img.png](images/img5.png)
+
+3. 调度器分类
+![img.png](images/img6.png)
+
+- 单体调度器：对于大规模批量调度诉求场景，不能胜任！(基于pod的事件调度)！ 
+- 两层调度器：应用平台--hadoop,spark；资源调度器(负责底层计算资源的管理)，应用调度器；resource offers，存在的问题：1.资源争抢如何解决？2.分配资源不合理如何处理 解决办法：悲观锁 先锁定资源，再进行资源的腾挪处理。-->效率不高 
+- 状态共享调度器：基于版本控制/事务控制的基于乐观锁的调度！ full state,本地缓存，回写，冲突判断，重试。
+
+4. 调度器需要充分考虑诸多的因素
+![img.png](images/img7.png)
+
+- 资源高效利用：装箱率要高！ 
+- affinity：微服务，分步式系统，网络调用，本机调用，排除了网络调用，额外的传输时间，物理网卡带宽限制！ 
+- anti-affinity：某个业务的不同副本，不能让其跑在一台机器上，一个机架上，一个地域里，使其分布在不同的故障域。
+- locality：数据本地化，是一个很重要的概念，哪里有数据，我的作业就去哪里，这样可以减少数据拷贝的开销。k8s里的拉取镜像。
+
+
+## 默认调度器 
+kube-scheduler 是 Kubernetes 集群的默认调度器，并且是集群控制面的一部分。 如果你真得希望或者有这方面的需求，kube-scheduler 在设计上允许你自己编写一个调度组件并替换原有的 kube-scheduler。
 
 Kube-scheduler 选择一个最佳节点来运行新创建的或尚未调度（unscheduled）的 Pod。 由于 Pod 中的容器和 Pod 本身可能有不同的要求，调度程序会过滤掉任何不满足 Pod 特定调度需求的节点。 或者，API 允许你在创建 Pod 时为它指定一个节点，但这并不常见，并且仅在特殊情况下才会这样做。
 
@@ -20,7 +44,6 @@ Pod 是 Kubernetes 中最小的调度单元，Pod 被创建出来的工作流程
 
 ![img.png](images/img1.png)
 
-
 在这张图中: 
 - 第一步通过 apiserver REST API 创建一个 Pod。
 - 然后 apiserver 接收到数据后将数据写入到 etcd 中。
@@ -28,7 +51,29 @@ Pod 是 Kubernetes 中最小的调度单元，Pod 被创建出来的工作流程
 - 这个时候一样的目标 Node 节点上的 kubelet 通过 apiserver watch API 检测到有一个新的 Pod 被调度过来了，他就将该 Pod 的相关数据传递给后面的容器运行时(container runtime)，比如 Docker，让他们去运行该 Pod。
 - 而且 kubelet 还会通过 container runtime 获取 Pod 的状态，然后更新到 apiserver 中，当然最后也是写入到 etcd 中去的。
 
-整个过程中最重要的就是 apiserver watch API 和kube-scheduler的调度策略。
+整个过程中最重要的就是 apiserver watch API 和 kube-scheduler 的调度策略。
+
+Kube-scheduler 的主要作用就是根据特定的调度算法和调度策略将 Pod 调度到合适的 Node 节点上去。
+
+启动之后会一直监听 API Server，获取到 
+
+```shell
+PodSpec.NodeName
+```
+为空的 Pod，对每个 Pod 都会创建一个 binding。
+
+![img.png](images/img11.png)
+
+
+这个过程在我们看来好像比较简单，但在实际的生产环境中，需要考虑的问题就有很多了:
+
+- 如何保证全部的节点调度的公平性？要知道并不是所有节点资源配置一定都是一样的
+- 如何保证每个节点都能被分配资源？
+- 集群资源如何能够被高效利用？
+- 集群资源如何才能被最大化使用？
+- 如何保证 Pod 调度的性能和效率？(假设说有1w个节点，我是否可以在其中1k个节点上进行筛选呢，这样就可以大幅度提高调度效率了 )
+- 用户是否可以根据自己的实际需求定制自己的调度策略？
+
 
 调度主要分为以下几个部分：
 
@@ -43,8 +88,38 @@ Pod 是 Kubernetes 中最小的调度单元，Pod 被创建出来的工作流程
 最后，kube-scheduler 会将 Pod 调度到得分最高的节点上。 如果存在多个得分最高的节点，kube-scheduler 会从中随机选取一个。
 
 
+> - 如果你的pod处于pending状态，那么一定就是调度器出现了问题，那么原因会很多，有可能是你的node资源不足，有可能是你的节点已经被占用了……(因此需要使用kubectl describle pod xxx来查看原因)
+> - 所谓的binding操作就是如下： $ kubectl get pod nginx  -oyaml …… nodeName: node2 #将pod的配置清单的nodeName字段补充完成。 ……
+
+下面是调度过程的简单示意图：
+
+![img.png](images/img12.png)
+
+更详细的流程是这样的：
+
+- 首先，客户端通过 API Server 的 REST API 或者 kubectl 工具创建 Pod 资源
+- API Server 收到用户请求后，存储相关数据到 etcd 数据库中
+- 调度器监听 API Server 查看到还未被调度(bind)的 Pod 列表，循环遍历地为每个 Pod 尝试分配节点，这个分配过程就是我们上面提到的两个阶段：
+- 预选阶段(Predicates)，过滤节点，调度器用一组规则过滤掉不符合要求的 Node 节点，比如 Pod 设置了资源的 request，那么可用资源比 Pod 需要的资源少的主机显然就会被过滤掉。
+- 优选阶段(Priorities)，为节点的优先级打分，将上一阶段过滤出来的 Node 列表进行打分，调度器会考虑一些整体的优化策略，比如把 Deployment 控制的多个 Pod 副本尽量分布到不同的主机上，使用最低负载的主机等等策略。
+- 经过上面的阶段过滤后选择打分最高的 Node 节点和 Pod 进行 binding 操作，然后将结果存储到 etcd 中， 最后被选择出来的 Node 节点对应的 kubelet 去执行创建 Pod 的相关操作（当然也是 watch APIServer 发现的）。
+
+Predicates plugin工作原理 链式过滤器:
+
+![img.png](images/img13.png)
+
+调度插件:
+
+![img.png](images/img10.png)
+
+- LeastAllocated：空闲资源多的分高 --使的node上的负载比较合理一点！ 
+- MostAllocated：空闲资源少的分高 -- 可以退回Node资源！
+
+
+
 ## 调度框架
 
+基于Scheduler Framework实现扩展
 
 调度框架是面向 Kubernetes 调度器的一种插件架构， 它为现有的调度器添加了一组新的“插件” API。插件会被编译到调度器之中。 这些 API 允许大多数调度功能以插件的形式实现，同时使调度“核心”保持简单且可维护。
 
@@ -79,7 +154,7 @@ Pod 是 Kubernetes 中最小的调度单元，Pod 被创建出来的工作流程
 
 要了解有关内部调度器队列如何工作的更多详细信息，请阅读 kube-scheduler 调度队列。
 
-2. 队列排序
+2. Sort
 
 这些插件用于对调度队列中的 Pod 进行排序。 队列排序插件本质上提供 Less(Pod1, Pod2) 函数。 一次只能启动一个队列插件。
 
@@ -140,7 +215,7 @@ Bind 插件用于将 Pod 绑定到节点上。直到所有的 PreBind 插件都�
 这是个信息性的扩展点。 如果 Pod 被保留，然后在后面的阶段中被拒绝，则 Unreserve 插件将被通知。 Unreserve 插件应该清楚保留 Pod 的相关状态。
 
 
-## 插件 API
+### 插件 API
 
 插件 API 分为两个步骤。首先，插件必须完成注册并配置，然后才能使用扩展点接口。 扩展点接口具有以下形式。
 
@@ -162,7 +237,7 @@ type PreFilterPlugin interface {
 // ...
 ```
 
-## 插件配置
+### 插件配置
 
 你可以在调度器配置中启用或禁用插件。 如果你在使用 Kubernetes v1.18 或更高版本，大部分调度 [插件](https://kubernetes.io/zh-cn/docs/reference/scheduling/config/#scheduling-plugins) 都在使用中且默认启用。
 
@@ -172,5 +247,63 @@ type PreFilterPlugin interface {
 
 
 
+## 多调度器
 
+如果默认的调度器不满足要求，还可以部署自定义的调度器。并且，在整个集群中还可以同时运 行多个调度器实例，通过 pod.Spec.schedulerName 来选择使用哪一个调度器（默认使用内置 的调度器）。
 
+## 重调度器
+
+参考： https://github.com/kubernetes-sigs/descheduler
+
+![img.png](images/img20.png)
+
+## 扩展调度器
+
+![img.png](images/img14.png)
+
+extender本身就是一个拉低性能的因素。
+考虑到实际环境中的各种复杂情况，kubernetes 的调度器采用插件化的形式实现，可以方便用户进行定制或者二次开发，我们可以自定义一个调度器并以插件形式和 kubernetes 进行集成。
+
+## 基于 Scheduler Framework 实现扩展
+
+1. Vendor scheduler framework 
+2. 编写自己的调度器插件 cmd := app.NewSchedulerCommand( app.WithPlugin(dynamic.Name, dynamic.NewDynamicScheduler), )
+3. 实现 scheduler framework 提供的扩展点 Filter/Score 等 
+4. 完成调度器配置
+
+## 动态调度器
+
+- Scheduler-Controller 周期性地从 Prometheus 拉取各个节点的真实负载数据， 再以 Annotation 的形式标记在各个节点上； 
+- Scheduler 则直接在从候选节点的 Annotation 读取负载信息，并基于这些负载信息在 Filter 阶段对节点进行过滤以及在 Score 阶段对节点进行打分。
+
+参考： https://github.com/gocrane/crane-scheduler
+
+![img.png](images/img21.png)
+
+## 拓扑感知调度
+
+参考： https://github.com/gocrane/crane-scheduler
+
+- 性能优先 
+  - 优先选择Pod能绑定在单 NUMA Node 内的节点 
+  - 优先选择在同一个 NUMA Socket 内的 NUMA Node 
+- 负载均衡 
+  - 优先选择空闲资源更多的 NUMA Node 
+- 更灵活的策略 
+  - 解决原生CPU Manager导致集群负载过低的问题
+
+![img.png](images/img22.png)
+
+## 支持模拟调度的重调度器
+
+优雅驱逐能力 
+- 有全局视图，在多workload并行、同一workload内串行驱逐
+- 支持模拟调度，集群资源不足时可停止驱逐 
+- 可以通过先扩容后缩容的方式实现无感驱逐 
+
+支持场景 
+- 驱逐负载过高的节点上的低优Pod 
+- 支持固定时间窗口腾空节点 
+- 支持基于特定标签批量驱逐Pod
+
+![img.png](images/img23.png)
