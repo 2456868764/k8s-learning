@@ -104,11 +104,9 @@ PodSpec.NodeName
 - 优选阶段(Priorities)，为节点的优先级打分，将上一阶段过滤出来的 Node 列表进行打分，调度器会考虑一些整体的优化策略，比如把 Deployment 控制的多个 Pod 副本尽量分布到不同的主机上，使用最低负载的主机等等策略。
 - 经过上面的阶段过滤后选择打分最高的 Node 节点和 Pod 进行 binding 操作，然后将结果存储到 etcd 中， 最后被选择出来的 Node 节点对应的 kubelet 去执行创建 Pod 的相关操作（当然也是 watch APIServer 发现的）。
 
-Predicates plugin工作原理 链式过滤器:
 
-![img.png](images/img13.png)
 
-调度插件:
+### 1. 调度插件:
 
 ![img.png](images/img10.png)
 
@@ -116,6 +114,35 @@ Predicates plugin工作原理 链式过滤器:
 - MostAllocated：空闲资源少的分高 -- 可以退回Node资源！
 
 
+### 2. Predicates plugin工作原理 
+链式过滤器:
+
+![img.png](images/img13.png)
+
+### 3. kubernetes 中的资源分配
+
+![img.png](images/img15.png)
+
+### 4. 节点上进程调度
+![img.png](images/img16.png)
+
+### 5. nodeSelector
+![img.png](images/img17.png)
+### 6. NodeAffinity
+![img.png](images/img18.png)
+
+### 7. podAffinity
+
+![img.png](images/img19.png)
+
+### 8. Taints 和 Tolerations
+文档位置： https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/taint-and-toleration/
+
+![img.png](images/img24.png)
+
+### 9. PriorityClass
+文档位置： https://kubernetes.io/zh-cn/docs/concepts/scheduling-eviction/pod-priority-preemption/
+![img.png](images/img25.png)
 
 ## 调度框架
 
