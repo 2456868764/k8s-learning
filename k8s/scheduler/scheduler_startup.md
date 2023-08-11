@@ -382,5 +382,4 @@ func Run(ctx context.Context, cc *schedulerserverconfig.CompletedConfig, sched *
 	sched.Run(ctx)
 	return fmt.Errorf("finished without leader elect")
 }
-
 ```
