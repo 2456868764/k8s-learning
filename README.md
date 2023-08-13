@@ -37,7 +37,11 @@
   * [调度器概述](k8s/scheduler/scheduler_arch.md)
   * [调度器启动流程](k8s/scheduler/scheduler_startup.md)
   * [调度队列](k8s/scheduler/scheduler_queue.md)
-  * [调度核心流程](k8s/scheduler/scheduler_one.md)
+  * [调度失败与重试处理](k8s/scheduler/scheduler_retry.md)
+  * [调度器](k8s/scheduler/scheduler.md)
+  * [核心调度算法](k8s/scheduler/scheduler_algorithm.md)
+  * [Preempt抢占机制](k8s/scheduler/preempt.md)
+  
 * Controller-Server
 
 ### 4.k8s基本对象

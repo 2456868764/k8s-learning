@@ -1,248 +1,7 @@
-# 核心调度流程
+# 核心调度算法
 
-## 1. 调度器运行核心流程
 
-```golang
-// Run begins watching and scheduling. It starts scheduling and blocked until the context is done.
-func (sched *Scheduler) Run(ctx context.Context) {
-	sched.SchedulingQueue.Run()
-
-	// We need to start scheduleOne loop in a dedicated goroutine,
-	// because scheduleOne function hangs on getting the next item
-	// from the SchedulingQueue.
-	// If there are no new pods to schedule, it will be hanging there
-	// and if done in this goroutine it will be blocking closing
-	// SchedulingQueue, in effect causing a deadlock on shutdown.
-	go wait.UntilWithContext(ctx, sched.scheduleOne, 0)
-
-	<-ctx.Done()
-	sched.SchedulingQueue.Close()
-}
-```
-在调度队列准备运行后， 会执行  sched.scheduleOne 进行调度， 具体代码如下
-
-```golang
-// /pkg/scheduler/schedule_one.go
-// scheduleOne does the entire scheduling workflow for a single pod. It is serialized on the scheduling algorithm's host fitting.
-func (sched *Scheduler) scheduleOne(ctx context.Context) {
-	podInfo := sched.NextPod()
-	// ...
-	pod := podInfo.Pod
-	fwk, err := sched.frameworkForPod(pod)
-	// ...
-	if sched.skipPodSchedule(fwk, pod) {
-		return
-	}
-
-	// Synchronously attempt to find a fit for the pod.
-	start := time.Now()
-	state := framework.NewCycleState()
-	state.SetRecordPluginMetrics(rand.Intn(100) < pluginMetricsSamplePercent)
-
-	// Initialize an empty podsToActivate struct, which will be filled up by plugins or stay empty.
-	podsToActivate := framework.NewPodsToActivate()
-	state.Write(framework.PodsToActivateKey, podsToActivate)
-
-	schedulingCycleCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-    // 调度周期
-	scheduleResult, assumedPodInfo, status := sched.schedulingCycle(schedulingCycleCtx, state, fwk, podInfo, start, podsToActivate)
-	//...
-	// bind the pod to its host asynchronously (we can do this b/c of the assumption step above).
-	go func() {
-		bindingCycleCtx, cancel := context.WithCancel(ctx)
-		defer cancel()
-		// ...
-		// 绑定周期
-		status := sched.bindingCycle(bindingCycleCtx, state, fwk, scheduleResult, assumedPodInfo, start, podsToActivate)
-		if !status.IsSuccess() {
-			sched.handleBindingCycleError(bindingCycleCtx, state, fwk, assumedPodInfo, start, scheduleResult, status)
-		}
-	}()
-}
-
-```
-核心流程如下：
-- 调用sched.NextPod()从activeQ中获取一个优先级最高的待调度Pod，该过程是阻塞的，当activeQ中不存在任何Pod资源对象时，sched.NextPod()处于等待状态
-- 调用 sched.frameworkForPod 获取 POD 调度框架
-- 调用 sched.skipPodSchedule 是否 POD 可以跳过调度
-- 调用 sched.schedulingCycle 方法执行调度算法，为Pod选择一个合适的节点
-- 调用 sched.bindingCycle 方法进行绑定，为Pod设置NodeName字段
-
-## 2. sched.NextPod()
-
-scheduleOne()方法在最开始调用 sched.NextPod() 方法来获取下一个要调度的Pod，就是从 activeQ 活动队列中Pop出来元素，创建Scheduler对象时指定了NextPod函数 internalqueue.MakeNextPodFunc(podQueue)：
-
-```golang
-// /pkg/scheduler/internal/queue/scheduling_queue.go
-// MakeNextPodFunc returns a function to retrieve the next pod from a given
-// scheduling queue
-func MakeNextPodFunc(queue SchedulingQueue) func() *framework.QueuedPodInfo {
-	return func() *framework.QueuedPodInfo {
-		podInfo, err := queue.Pop()
-		if err == nil {
-			klog.V(4).InfoS("About to try and schedule pod", "pod", klog.KObj(podInfo.Pod))
-			for plugin := range podInfo.UnschedulablePlugins {
-				metrics.UnschedulableReason(plugin, podInfo.Pod.Spec.SchedulerName).Dec()
-			}
-			return podInfo
-		}
-		klog.ErrorS(err, "Error while retrieving next pod from scheduling queue")
-		return nil
-	}
-}
-```
-
-这里调用优先级队列的 Pop() 方法来弹出队列中的Pod进行调度处理
-
-```golang
-// /pkg/scheduler/internal/queue/scheduling_queue.go
-// Pop removes the head of the active queue and returns it. It blocks if the
-// activeQ is empty and waits until a new item is added to the queue. It
-// increments scheduling cycle when a pod is popped.
-func (p *PriorityQueue) Pop() (*framework.QueuedPodInfo, error) {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-	for p.activeQ.Len() == 0 {
-		// When the queue is empty, invocation of Pop() is blocked until new item is enqueued.
-		// When Close() is called, the p.closed is set and the condition is broadcast,
-		// which causes this loop to continue and return from the Pop().
-		if p.closed {
-			return nil, fmt.Errorf(queueClosed)
-		}
-		p.cond.Wait()
-	}
-	obj, err := p.activeQ.Pop()
-	if err != nil {
-		return nil, err
-	}
-	pInfo := obj.(*framework.QueuedPodInfo)
-	pInfo.Attempts++
-	p.schedulingCycle++
-	return pInfo, nil
-}
-```
-
-## 3. 获取 Pod 对应调度框架 
-
-调用 sched.frameworkForPod 获取 pod.Spec.SchedulerName 对应调度框架
-
-```golang
-func (sched *Scheduler) frameworkForPod(pod *v1.Pod) (framework.Framework, error) {
-	fwk, ok := sched.Profiles[pod.Spec.SchedulerName]
-	if !ok {
-		return nil, fmt.Errorf("profile not found for scheduler name %q", pod.Spec.SchedulerName)
-	}
-	return fwk, nil
-}
-```
-### 4. 调度周期
-
-调用 sched.schedulingCycle 进入 POD 调度周期
-
-```golang
-// schedulingCycle tries to schedule a single Pod.
-func (sched *Scheduler) schedulingCycle(
-	ctx context.Context,
-	state *framework.CycleState,
-	fwk framework.Framework,
-	podInfo *framework.QueuedPodInfo,
-	start time.Time,
-	podsToActivate *framework.PodsToActivate,
-) (ScheduleResult, *framework.QueuedPodInfo, *framework.Status) {
-	pod := podInfo.Pod
-	// 真正执行调度
-	scheduleResult, err := sched.SchedulePod(ctx, fwk, state, pod)
-	if err != nil {
-		// 调度失败， 执行 fwk.RunPostFilterPlugins 尝试抢占
-	    // ...
-		// SchedulePod() may have failed because the pod would not fit on any host, so we try to
-		// preempt, with the expectation that the next time the pod is tried for scheduling it
-		// will fit due to the preemption. It is also possible that a different pod will schedule
-		// into the resources that were preempted, but this is harmless.
-
-		if !fwk.HasPostFilterPlugins() {
-			klog.V(3).InfoS("No PostFilter plugins are registered, so no preemption will be performed")
-			return ScheduleResult{}, podInfo, framework.NewStatus(framework.Unschedulable).WithError(err)
-		}
-
-		// Run PostFilter plugins to attempt to make the pod schedulable in a future scheduling cycle.
-		result, status := fwk.RunPostFilterPlugins(ctx, state, pod, fitError.Diagnosis.NodeToStatusMap)
-		msg := status.Message()
-		// ...
-		var nominatingInfo *framework.NominatingInfo
-		if result != nil {
-			nominatingInfo = result.NominatingInfo
-		}
-		return ScheduleResult{nominatingInfo: nominatingInfo}, podInfo, framework.NewStatus(framework.Unschedulable).WithError(err)
-	}
-	
-	// 执行 sched.assume 方法进行预绑定，为Pod设置NodeName字段，更新Scheduler缓存
-    // ...
-	// Tell the cache to assume that a pod now is running on a given node, even though it hasn't been bound yet.
-	// This allows us to keep scheduling without waiting on binding to occur.
-	assumedPodInfo := podInfo.DeepCopy()
-	assumedPod := assumedPodInfo.Pod
-	// assume modifies `assumedPod` by setting NodeName=scheduleResult.SuggestedHost
-	err = sched.assume(assumedPod, scheduleResult.SuggestedHost)
-	if err != nil {
-		// This is most probably result of a BUG in retrying logic.
-		// We report an error here so that pod scheduling can be retried.
-		// This relies on the fact that Error will check if the pod has been bound
-		// to a node and if so will not add it back to the unscheduled pods queue
-		// (otherwise this would cause an infinite loop).
-		return ScheduleResult{nominatingInfo: clearNominatedNode},
-			assumedPodInfo,
-			framework.AsStatus(err)
-	}
-    // 调用fwk.RunReservePluginsReserve()方法运行Reserve插件的Reserve()方法
-	// Run the Reserve method of reserve plugins.
-	if sts := fwk.RunReservePluginsReserve(ctx, state, assumedPod, scheduleResult.SuggestedHost); !sts.IsSuccess() {
-		// trigger un-reserve to clean up state associated with the reserved Pod
-		fwk.RunReservePluginsUnreserve(ctx, state, assumedPod, scheduleResult.SuggestedHost)
-		if forgetErr := sched.Cache.ForgetPod(assumedPod); forgetErr != nil {
-			klog.ErrorS(forgetErr, "Scheduler cache ForgetPod failed")
-		}
-
-		return ScheduleResult{nominatingInfo: clearNominatedNode},
-			assumedPodInfo,
-			sts
-	}
-    // 调用fwk.RunPermitPlugins()方法运行Permit插件
-	// Run "permit" plugins.
-	runPermitStatus := fwk.RunPermitPlugins(ctx, state, assumedPod, scheduleResult.SuggestedHost)
-	if !runPermitStatus.IsWait() && !runPermitStatus.IsSuccess() {
-		// trigger un-reserve to clean up state associated with the reserved Pod
-		fwk.RunReservePluginsUnreserve(ctx, state, assumedPod, scheduleResult.SuggestedHost)
-		if forgetErr := sched.Cache.ForgetPod(assumedPod); forgetErr != nil {
-			klog.ErrorS(forgetErr, "Scheduler cache ForgetPod failed")
-		}
-
-		return ScheduleResult{nominatingInfo: clearNominatedNode},
-			assumedPodInfo,
-			runPermitStatus
-	}
-    // 
-	// At the end of a successful scheduling cycle, pop and move up Pods if needed.
-	if len(podsToActivate.Map) != 0 {
-		sched.SchedulingQueue.Activate(podsToActivate.Map)
-		// Clear the entries after activation.
-		podsToActivate.Map = make(map[string]*v1.Pod)
-	}
-
-	return scheduleResult, assumedPodInfo, nil
-}
-```
-
-核心流程如下：
-- 执行 sched.SchedulePod 进行调度
-- 调度失败， 执行 fwk.RunPostFilterPlugins 尝试抢占
-- 执行 sched.assume 方法进行预绑定，为Pod设置NodeName字段，更新Scheduler缓存
-- 调用fwk.RunReservePluginsReserve()方法运行Reserve插件的Reserve()方法
-- 调用fwk.RunPermitPlugins()方法运行Permit插件
-- 调用 sched.SchedulingQueue.Activate
-
-#### 4.1.  sched.SchedulePod() 执行预选与优选算法处理
+## 1.  sched.SchedulePod() 执行预选与优选算法处理
 
 ```golang
 // 
@@ -313,7 +72,7 @@ func (sched *Scheduler) schedulePod(ctx context.Context, fwk framework.Framework
 - Priorities阶段:执行优选算法,获得打分之后的node列表
 - 根据打分选择分数最高的node
 
-#### 4.2 预选算法 sched.findNodesThatFitPod
+## 2. 预选算法 sched.findNodesThatFitPod
 
 预选算法会从当前集群中的所有的Node中进行过滤，选出符合当前Pod运行的Nodes。预选的核心流程是通过findNodesThatFit()来完成，其返回预选结果供优选流程使用。预选算法的主要逻辑如下图：
 
@@ -386,7 +145,7 @@ findNodesThatFit()方法逻辑如下：
 - 调用findNodesThatPassFilters()方法，查找能够满足 filter 过滤插件的节点
 - 调用findNodesThatPassExtenders()方法，查找能够满足 extenders 的节点
 
-#### 4.3 RunPreFilterPlugins
+## 3. RunPreFilterPlugins
 
 ```golang
 // /pkg/scheduler/framework/runtime/framework.go
@@ -422,7 +181,7 @@ func (f *frameworkImpl) runPreFilterPlugin(ctx context.Context, pl framework.Pre
 ```
 核心流程遍历插件列表，调用插件的 PreFilter 方法。
 
-#### 4.4 findNodesThatPassFilters
+## 4. findNodesThatPassFilters
 
 ```golang
 // /pkg/scheduler/schedule_one.go
@@ -517,7 +276,7 @@ findNodesThatPassFilters()方法逻辑如下：
 
 - 调用fwk.Parallelizer().Until(ctx, len(nodes), checkNode)，默认开启16个goroutine并行寻找符合条件的Node节点
 
-#### 4.5 确定参与调度的节点数量 numFeasibleNodesToFind
+## 5. 确定参与调度的节点数量 numFeasibleNodesToFind
 
 numFeasibleNodesToFind()根据集群节点数量选择参与调度的节点的数量，算法的具体逻辑如下图：
 
@@ -566,7 +325,7 @@ func (sched *Scheduler) numFeasibleNodesToFind(percentageOfNodesToScore *int32, 
 
 ```
 
-#### 4.6 并行化二次筛选节点
+## 6. 并行化二次筛选节点
 
 并行取样主要通过调用workqueue的ParallelizeUntil()方法来启动N个goroutine来进行并行取样，并通过Context来协调退出。选取节点的规则由checkNode()函数来定义，checkNode里面调用RunFilterPluginsWithNominatedPods()方法筛选出合适的节点
 
@@ -637,7 +396,7 @@ func (f *frameworkImpl) RunFilterPluginsWithNominatedPods(ctx context.Context, s
 
 ```
 
-#### 4.7 优选算法
+## 7. 优选算法
 
 优选算法先通过prioritizeNodes()方法获得打分之后的node列表，然后再通过selectHost()方法选择分数最高的node，返回结果
 
@@ -786,7 +545,6 @@ func selectHost(nodeScores []framework.NodePluginScores) (string, error) {
 ```
 
 ## 调度核心实现总结
-
 
 ![img.png](images/img29.png)
 
