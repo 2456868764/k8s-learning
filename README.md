@@ -37,6 +37,7 @@
   * [调度器概述](k8s/scheduler/arch.md)
   * [调度器启动流程](k8s/scheduler/startup.md)
   * [调度队列](k8s/scheduler/scheduling_queue.md)
+  * [调度缓存](k8s/scheduler/cache.md)
   * [调度失败与重试处理](k8s/scheduler/scheduler_retry.md)
   * [调度器](k8s/scheduler/scheduler.md)
   * [核心调度算法](k8s/scheduler/scheduler_algorithm.md)
