@@ -42,6 +42,7 @@
   * [调度失败与重试处理](k8s/scheduler/scheduler_retry.md)
   * [调度器](k8s/scheduler/scheduler.md)
   * [插件](k8s/scheduler/plugin.md)
+  * [调度框架](k8s/scheduler/framework.md)
   * [核心调度算法](k8s/scheduler/scheduler_algorithm.md)
   * [Preempt抢占机制](k8s/scheduler/preempt.md)
   
