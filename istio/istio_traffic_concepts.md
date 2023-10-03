@@ -650,7 +650,7 @@ Outbound Handler 的作用是将 iptables 拦截到的本地应用程序向外�
 
 Envoy 监听在 15001 端口上监听所有 Outbound 流量，Outbound Handler 处理，然后经过 virtualOutbound Listener、0.0.0.0_8000 Listener，然后通过 Route 8000 找到上游的 cluster，进而通过 EDS 找到 Endpoint 执行路由动作。
 
-运行 istioctl proxy-config routes sleep-9454cc476-j2w49 -n istio-demo --name 8000 -o yaml 查看 route 配置，因为 sidecar 会根据 HTTP header 中的 domains 来匹配 VirtualHost，所以下面只列举了 ratings.default.svc.cluster.local:9080 这一个 VirtualHost。
+运行 istioctl proxy-config routes sleep-9454cc476-j2w49 -n istio-demo --name 8000 -o yaml 查看 route 配置，因为 sidecar 会根据 HTTP header 中的 domains 来匹配 VirtualHost，所以下面只列举了 httpbin.istio-demo.svc.cluster.local:8000 这一个 VirtualHost。
 
 ```yaml
 - ignorePortInHostMatching: true
