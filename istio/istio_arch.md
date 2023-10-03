@@ -8,7 +8,7 @@
 1. get istioctl
 
 ```shell
-https://github.com/istio/istio/releases/tag/1.17.2
+https://github.com/istio/istio/releases/tag/1.19.0
 ```
 
 2. install
