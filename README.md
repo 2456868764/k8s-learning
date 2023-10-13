@@ -128,12 +128,13 @@
   * [iptables](./istio/iptables.md)
   * [istio 架构](./istio/istio_arch.md)
   * [流量劫持原理分析](./istio/istio_traffic_concepts.md)
-  * [流量管理]
+  * [流量管理](./istio/istio_traffic_management.md)
   * [API Gateway]
   * [安全与零信任网络]
   * [可观察性]
   * [扩展 & EnvoyFilter & Wasmplugin](./istio/isito_envoyfilter.md)
   * [Pilot 源码分析]
+    * [Pilog Agent 源码整体架构分析](./istio/pilot_agent.md)
   * [Ambient 模式原理分析]
 
 ## FinOps
