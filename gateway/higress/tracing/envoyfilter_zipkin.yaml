@@ -1,0 +1,49 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: higress-trace
+  namespace: higress-system
+spec:
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          name: envoy.filters.network.http_connection_manager
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            tracing:
+              provider:
+                name: envoy.tracers.zipkin
+                typed_config:
+                  '@type': type.googleapis.com/envoy.config.trace.v3.ZipkinConfig
+                  collector_cluster: outbound|9411||zipkin.op-system.svc.cluster.local
+                  collector_endpoint: "/api/v2/spans"
+                  shared_span_context: true
+                  collector_hostname: "higress-gateway"
+                  collector_endpoint_version: HTTP_JSON
+                  split_spans_for_request: true
+              random_sampling:
+                value: 100
+    - applyTo: HTTP_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+      patch:
+        operation: MERGE
+        value:
+          name: envoy.filters.http.router
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+            start_child_span: true

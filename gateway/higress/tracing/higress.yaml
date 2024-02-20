@@ -1,0 +1,1353 @@
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: higress-console-prometheus
+  namespace: higress-system
+---
+# Source: higress/charts/higress-console/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: higress/charts/higress-core/templates/controller-serviceaccont.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: higress-controller
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller
+---
+# Source: higress/charts/higress-core/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: higress-gateway
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-gateway
+    higress: higress-system-higress-gateway
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-gateway
+---
+# Source: higress/charts/higress-console/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: higress-console
+  namespace: higress-system
+type: Opaque
+data:
+  adminUsername: YWRtaW4= 
+  adminDisplayName: QWRtaW4=
+  adminPassword: YWRtaW4=
+  key: eSFeVyVSMyNrdWRIfTh0OSVaSSgxdCtxKTRseF15Vkw=
+  iv: YDd+PyRlVSU+M3Z6aiV6fg==
+---
+# Source: higress/charts/higress-console/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+data:
+---
+# Source: higress/charts/higress-console/templates/grafana.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: higress-console-grafana
+  namespace: higress-system
+data:
+  grafana.ini: |
+    [server]
+    protocol=http
+    domain=localhost
+    root_url="%(protocol)s://%(domain)s/grafana"
+    serve_from_sub_path=true
+
+    [auth]
+    disable_login_form=true
+    disable_signout_menu=true
+    
+    [auth.anonymous]
+    enabled=true
+    org_name=Main Org.
+    org_role=Viewer
+
+    [users]
+    default_theme=light
+
+    [security]
+    allow_embedding=true
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: higress-console-prometheus
+  namespace: higress-system
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s 
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: 'prometheus'
+        metrics_path: /prometheus/metrics
+        static_configs:
+        - targets: ['localhost:9090']
+      - job_name: 'k8s_nodes'
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+        - role: node
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - replacement: kubernetes.default.svc:443
+          target_label: __address__
+        - regex: (.+)
+          replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+          source_labels:
+          - __meta_kubernetes_node_name
+          target_label: __metrics_path__
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+      - job_name: 'k8s_pods'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_namespace]
+          regex: higress-system
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_label_app]
+          regex: higress-gateway
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: kubernetes_pod_name
+---
+# Source: higress/charts/higress-core/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: higress-config
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-gateway
+    higress: higress-system-higress-gateway
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-gateway    
+data:
+
+  # Configuration file for the mesh networks to be used by the Split Horizon EDS.
+  meshNetworks: |-
+    networks: {}
+  
+  mesh: |-
+    accessLogEncoding: TEXT
+    accessLogFile: /dev/stdout
+    accessLogFormat: |
+      {"authority":"%REQ(:AUTHORITY)%","bytes_received":"%BYTES_RECEIVED%","bytes_sent":"%BYTES_SENT%","downstream_local_address":"%DOWNSTREAM_LOCAL_ADDRESS%","downstream_remote_address":"%DOWNSTREAM_REMOTE_ADDRESS%","duration":"%DURATION%","istio_policy_status":"%DYNAMIC_METADATA(istio.mixer:status)%","method":"%REQ(:METHOD)%","path":"%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%","protocol":"%PROTOCOL%","request_id":"%REQ(X-REQUEST-ID)%","requested_server_name":"%REQUESTED_SERVER_NAME%","response_code":"%RESPONSE_CODE%","response_flags":"%RESPONSE_FLAGS%","route_name":"%ROUTE_NAME%","start_time":"%START_TIME%","trace_id":"%REQ(X-B3-TRACEID)%","upstream_cluster":"%UPSTREAM_CLUSTER%","upstream_host":"%UPSTREAM_HOST%","upstream_local_address":"%UPSTREAM_LOCAL_ADDRESS%","upstream_service_time":"%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%","upstream_transport_failure_reason":"%UPSTREAM_TRANSPORT_FAILURE_REASON%","user_agent":"%REQ(USER-AGENT)%","x_forwarded_for":"%REQ(X-FORWARDED-FOR)%"}
+    configSources:
+    - address: xds://127.0.0.1:15051
+    - address: k8s://
+    defaultConfig:
+      disableAlpnH2: true
+      discoveryAddress: higress-controller.higress-system.svc:15012
+      proxyStatsMatcher:
+        inclusionRegexps:
+        - .*
+      tracing:
+        zipkin:
+          address: zipkin.higress-system:9411
+    dnsRefreshRate: 200s
+    enableAutoMtls: false
+    enablePrometheusMerge: true
+    ingressControllerMode: "OFF"
+    protocolDetectionTimeout: 100ms
+    rootNamespace: higress-system
+    trustDomain: cluster.local
+---
+# Source: higress/charts/higress-console/templates/grafana.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: higress-console-grafana
+  namespace: higress-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: 
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: higress-console-prometheus
+  namespace: higress-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: 
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Source: higress/charts/higress-console/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: higress-console-higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  # ingress controller
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["*"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses/status"]
+    verbs: ["*"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses/status"]
+    verbs: ["*"]
+  - apiGroups: ["networking.higress.io"]
+    resources: ["mcpbridges"]
+    verbs: ["*"]
+  - apiGroups: ["extensions.higress.io"]
+    resources: ["wasmplugins"]
+    verbs: ["*"]
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: higress-console-prometheus-higress-system
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+---
+# Source: higress/charts/higress-core/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: higress-gateway-higress-system
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+---
+# Source: higress/charts/higress-core/templates/controller-clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: higress-controller-higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller
+rules:
+  # ingress controller
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses/status"]
+    verbs: ["*"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses/status"]
+    verbs: ["*"]
+
+  # required for CA's namespace controller
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "get", "list", "watch", "update"]
+
+  # Use for Kubernetes Service APIs
+  - apiGroups: ["networking.x-k8s.io", "gateway.networking.k8s.io"]
+    resources: ["*"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["networking.x-k8s.io", "gateway.networking.k8s.io"]
+    resources: ["*"] # TODO: should be on just */status but wildcard is not supported
+    verbs: ["update"]
+
+  # Needed for multicluster secret reading, possibly ingress certs in the future
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "watch", "list"]
+
+  - apiGroups: ["networking.higress.io"]
+    resources: ["mcpbridges"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  - apiGroups: ["extensions.higress.io"]
+    resources: ["wasmplugins"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "watch", "list", "update", "patch", "create", "delete"]
+
+  # auto-detect installed CRD definitions
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "watch"]
+
+  # discovery and routing
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "services", "namespaces", "endpoints"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+    
+  # Istiod and bootstrap.
+  - apiGroups: ["certificates.k8s.io"]
+    resources:
+      - "certificatesigningrequests"
+      - "certificatesigningrequests/approval"
+      - "certificatesigningrequests/status"
+    verbs: ["update", "create", "get", "delete", "watch"]
+  - apiGroups: ["certificates.k8s.io"]
+    resources:
+      - "signers"
+    resourceNames:
+    - "kubernetes.io/legacy-unknown"
+    verbs: ["approve"]
+
+  # Used by Istiod to verify the JWT tokens
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["tokenreviews"]
+    verbs: ["create"]
+
+  # Used by Istiod to verify gateway SDS
+  - apiGroups: ["authorization.k8s.io"]
+    resources: ["subjectaccessreviews"]
+    verbs: ["create"]
+
+  # Used for MCS serviceexport management
+  - apiGroups: ["multicluster.x-k8s.io"]
+    resources: ["serviceexports"]
+    verbs: [ "get", "watch", "list", "create", "delete"]
+
+  # Used for MCS serviceimport management
+  - apiGroups: ["multicluster.x-k8s.io"]
+    resources: ["serviceimports"]
+    verbs: ["get", "watch", "list"]
+    
+  # sidecar injection controller
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["mutatingwebhookconfigurations"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+
+  # configuration validation webhook controller
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["get", "list", "watch", "update"]
+
+  # istio configuration
+  # removing CRD permissions can break older versions of Istio running alongside this control plane (https://github.com/istio/istio/issues/29382)
+  # please proceed with caution
+  - apiGroups: ["config.istio.io", "security.istio.io", "networking.istio.io", "authentication.istio.io", "rbac.istio.io", "telemetry.istio.io", "extensions.istio.io"]
+    verbs: ["get", "watch", "list"]
+    resources: ["*"]
+---
+# Source: higress/charts/higress-console/templates/clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: higress-console-higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm    
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: higress-console-higress-system
+subjects:
+  - kind: ServiceAccount
+    name: higress-console
+    namespace: higress-system
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: higress-console-prometheus-higress-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: higress-console-prometheus-higress-system
+subjects:
+- kind: ServiceAccount
+  name: higress-console-prometheus
+  namespace: higress-system
+---
+# Source: higress/charts/higress-core/templates/clusterrole.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: higress-gateway-higress-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: higress-gateway-higress-system
+subjects:
+- kind: ServiceAccount
+  name: higress-gateway
+  namespace: higress-system
+---
+# Source: higress/charts/higress-core/templates/controller-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: higress-controller-higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller    
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: higress-controller-higress-system
+subjects:
+  - kind: ServiceAccount
+    name: higress-controller
+    namespace: higress-system
+---
+# Source: higress/charts/higress-console/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create", "get", "list", "watch", "update", "delete"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "list", "watch", "update", "delete"]
+---
+# Source: higress/charts/higress-core/templates/controller-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: higress-controller
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller
+rules:
+# For storing CA secret
+- apiGroups: [""]
+  resources: ["secrets"]
+  # TODO lock this down to istio-ca-cert if not using the DNS cert mesh config
+  verbs: ["create", "get", "watch", "list", "update", "delete"]
+---
+# Source: higress/charts/higress-core/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: higress-gateway
+  namespace: higress-system
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+---
+# Source: higress/charts/higress-console/templates/rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: higress-console
+subjects:
+  - kind: ServiceAccount
+    name: higress-console
+    namespace: higress-system
+---
+# Source: higress/charts/higress-core/templates/controller-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: higress-controller
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: higress-controller
+subjects:
+  - kind: ServiceAccount
+    name: higress-controller
+    namespace: higress-system
+---
+# Source: higress/charts/higress-core/templates/role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: higress-gateway
+  namespace: higress-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: higress-gateway
+subjects:
+- kind: ServiceAccount
+  name: higress-gateway
+---
+# Source: higress/charts/higress-console/templates/grafana.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: higress-console-grafana
+  namespace: higress-system
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: http-grafana
+  selector:
+    app: higress-console-grafana
+  sessionAffinity: None
+  type: ClusterIP
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: higress-console-prometheus
+  name: higress-console-prometheus
+  namespace: higress-system
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: http-prometheus
+  selector:
+    app: higress-console-prometheus
+---
+# Source: higress/charts/higress-console/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+---
+# Source: higress/charts/higress-core/templates/controller-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: higress-controller
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8888
+      protocol: TCP
+      targetPort: 8888
+    - name: grpc
+      port: 15051
+      protocol: TCP
+      targetPort: 15051
+    - port: 15010
+      name: grpc-xds # plaintext
+      protocol: TCP
+    - port: 15012
+      name: https-dns # mTLS with k8s-signed cert
+      protocol: TCP
+    - port: 443
+      name: https-webhook # validation and injection
+      targetPort: 15017
+      protocol: TCP
+    - port: 15014
+      name: http-monitoring # prometheus stats
+      protocol: TCP
+  selector:
+    app: higress-controller
+    higress: higress-controller
+---
+# Source: higress/charts/higress-core/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: higress-gateway
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-gateway
+    higress: higress-system-higress-gateway
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-gateway
+  annotations:
+    {}
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http2
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+  selector:
+    app: higress-gateway
+    higress: higress-system-higress-gateway
+---
+# Source: higress/charts/higress-console/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: higress-console
+      app.kubernetes.io/instance: RELEASE-NAME
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: higress-console
+        app.kubernetes.io/instance: RELEASE-NAME
+    spec:
+      serviceAccountName: higress-console
+      securityContext:
+        {}
+      containers:
+        - name: higress-console
+          securityContext:
+            {}
+          image: "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/console:1.0.1"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: JAVA_HOME
+              value: /usr/local/openjdk-18
+            - name: LANG
+              value: C.UTF-8
+            - name: HIGRESS_CONSOLE_NS
+              value: higress-system
+            - name: HIGRESS_CONSOLE_ADMIN_SECRET
+              value: higress-console
+            - name: HIGRESS_CONSOLE_CONFIG_MAP_NAME
+              value: higress-console
+            - name: HIGRESS_CONSOLE_CONTROLLER_JWT_POLICY
+              value: first-party-jwt
+            - name: HIGRESS_CONSOLE_DASHBOARD_BASE_URL
+              value: http://higress-console-grafana.higress-system:3000/grafana
+            - name: HIGRESS_CONSOLE_DASHBOARD_DATASOURCE_URL
+              value: http://higress-console-prometheus.higress-system:9090/prometheus
+            - name: HIGRESS_CONSOLE_CONTROLLER_INGRESS_CLASS_NAME
+              value: higress
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          volumeMounts:
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      volumes:
+---
+# Source: higress/charts/higress-console/templates/grafana.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: higress-console-grafana
+  namespace: higress-system
+  labels:
+    app: higress-console-grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: higress-console-grafana
+  template:
+    metadata:
+      labels:
+        app: higress-console-grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+        - 0
+      containers:
+      - name: grafana
+        image: grafana/grafana:9.3.6
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: http-grafana
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /robots.txt
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 3000
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: higress-console-grafana
+        - name: config
+          mountPath: "/etc/grafana/grafana.ini"
+          subPath: grafana.ini
+      volumes:
+      - name: higress-console-grafana
+        persistentVolumeClaim:
+          claimName: higress-console-grafana
+      - name: config
+        configMap:
+          name:  higress-console-grafana
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: higress-console-prometheus
+  name: higress-console-prometheus
+  namespace: higress-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: higress-console-prometheus
+  template:
+    metadata:
+      labels:
+        app: higress-console-prometheus
+    spec:
+      containers:
+      - image: prom/prometheus:v2.40.7
+        name: prometheus
+        command:
+        - "/bin/prometheus"
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.external-url=/prometheus"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention=6h"
+        ports:
+        - containerPort: 9090
+          name: http-prometheus
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "/prometheus"
+          name: data
+        - mountPath: "/etc/prometheus"
+          name: config
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2Gi
+      restartPolicy: Always
+      serviceAccountName: higress-console-prometheus
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: higress-console-prometheus
+      - name: config
+        configMap:
+          name: higress-console-prometheus
+---
+# Source: higress/charts/higress-core/templates/controller-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: higress-controller
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-controller
+    higress: higress-controller
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: higress-controller
+      higress: higress-controller
+  template:
+    metadata:
+      labels:
+        app: higress-controller
+        higress: higress-controller
+    spec:
+      serviceAccountName: higress-controller
+      securityContext:
+        {}
+      containers:
+        - name: discovery
+          image: "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/pilot:1.0.0"
+          args:
+          - "discovery"
+          - --monitoringAddr=:15014
+          - --log_output_level=default:info
+          - --domain
+          - cluster.local
+          - --keepaliveMaxServerConnectionAge
+          - "30m"
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 15010
+            protocol: TCP
+          - containerPort: 15017
+            protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 3
+            timeoutSeconds: 5
+          env:
+          - name: HIGRESS_CONTROLLER_SVC
+            value: "127.0.0.1"
+          - name: HIGRESS_CONTROLLER_PORT
+            value: "15051"
+          - name: REVISION
+            value: "default"
+          - name: JWT_POLICY
+            value: first-party-jwt
+          - name: PILOT_CERT_PROVIDER
+            value: "istiod"
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          - name: KUBECONFIG
+            value: /var/run/secrets/remote/config
+          - name: PRIORITIZED_LEADER_ELECTION
+            value: "false"
+          - name: INJECT_ENABLED
+            value: "false"
+          - name: PILOT_ENABLE_CROSS_CLUSTER_WORKLOAD_ENTRY
+            value: "false"
+          - name: PILOT_ENABLE_METADATA_EXCHANGE
+            value: "false"
+          - name: PILOT_SCOPE_GATEWAY_TO_NAMESPACE
+            value: "true"
+          - name: VALIDATION_ENABLED
+            value: "false"
+          - name: PILOT_TRACE_SAMPLING
+            value: "1"
+          - name: PILOT_ENABLE_PROTOCOL_SNIFFING_FOR_OUTBOUND
+            value: "true"
+          - name: PILOT_ENABLE_PROTOCOL_SNIFFING_FOR_INBOUND
+            value: "true"
+          - name: ISTIOD_ADDR
+            value: istiod.higress-system.svc:15012
+          - name: PILOT_ENABLE_ANALYSIS
+            value: "false"
+          - name: CLUSTER_ID
+            value: "Kubernetes"
+          - name: HIGRESS_ENABLE_ISTIO_API
+            value: "true"
+          - name: CUSTOM_CA_CERT_NAME
+            value: "higress-ca-root-cert"
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsUser: 1337
+            runAsGroup: 1337
+            runAsNonRoot: true
+            capabilities:
+              drop:
+              - ALL
+          volumeMounts:
+          - name: config
+            mountPath: /etc/istio/config
+          - name: local-certs
+            mountPath: /var/run/secrets/istio-dns
+          - name: cacerts
+            mountPath: /etc/cacerts
+            readOnly: true
+          - name: istio-kubeconfig
+            mountPath: /var/run/secrets/remote
+            readOnly: true
+        - name: higress-core
+          securityContext:
+            {}
+          image: "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/higress:1.0.0"
+          args:
+          - "serve"
+          - --gatewaySelectorKey=higress
+          - --gatewaySelectorValue=higress-system-higress-gateway
+          - --ingressClass=higress
+          env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          ports:
+            - name: http
+              containerPort: 8888
+              protocol: TCP
+            - name: grpc
+              containerPort: 15051
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8888
+            initialDelaySeconds: 1
+            periodSeconds: 3
+            timeoutSeconds: 5
+          volumeMounts:
+          - name: log
+            mountPath: /var/log
+      volumes:
+      - name: log
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: higress-config
+      # Technically not needed on this pod - but it helps debugging/testing SDS
+      # Should be removed after everything works.
+      - emptyDir:
+          medium: Memory
+        name: local-certs
+      # Optional: user-generated root
+      - name: cacerts
+        secret:
+          secretName: cacerts
+          optional: true
+      - name: istio-kubeconfig
+        secret:
+          secretName: istio-kubeconfig
+          optional: true
+---
+# Source: higress/charts/higress-core/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: higress-gateway
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-core-1.0.0
+    app: higress-gateway
+    higress: higress-system-higress-gateway
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: higress-gateway
+  annotations:
+    {}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: higress-gateway
+      higress: higress-system-higress-gateway
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 100%
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /stats/prometheus
+        prometheus.io/port: "15020"
+        prometheus.io/scrape: "true"
+        sidecar.istio.io/inject: "false"
+      labels:
+        sidecar.istio.io/inject: "false"
+        app: higress-gateway
+        higress: higress-system-higress-gateway
+    spec:
+      serviceAccountName: higress-gateway
+      securityContext:
+      containers:
+        - name: higress-gateway
+          image: "higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/gateway:1.0.0"
+          args:
+            - proxy
+            - router
+            - --domain
+            - $(POD_NAMESPACE).svc.cluster.local
+            - --proxyLogLevel=warning
+            - --proxyComponentLogLevel=misc:error
+            - --log_output_level=all:info
+            - --serviceCluster=higress-gateway
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+              add:
+              - NET_BIND_SERVICE
+            runAsUser: 0
+            runAsGroup: 1337
+            runAsNonRoot: false
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: true
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: INSTANCE_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
+          - name: SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: PROXY_XDS_VIA_AGENT
+            value: "true"
+          - name: ENABLE_INGRESS_GATEWAY_SDS
+            value: "false"
+          - name: JWT_POLICY
+            value: first-party-jwt
+          - name: ISTIO_META_HTTP10
+            value: "1"
+          - name: ISTIO_META_CLUSTER_ID
+            value: "Kubernetes"
+          - name: INSTANCE_NAME
+            value: "higress-gateway"
+          ports:
+          - containerPort: 15090
+            protocol: TCP
+            name: http-envoy-prom
+          - containerPort: 80
+            hostPort: 80
+            name: http
+            protocol: TCP
+          - containerPort: 443
+            hostPort: 443
+            name: https
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz/ready
+              port: 15021
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 2
+            successThreshold: 1
+            timeoutSeconds: 3
+          volumeMounts:
+          - name: config
+            mountPath: /etc/istio/config
+          - name: istio-ca-root-cert
+            mountPath: /var/run/secrets/istio
+          - name: istio-data
+            mountPath: /var/lib/istio/data
+          - name: podinfo            
+            mountPath: /etc/istio/pod
+          - name: proxy-socket
+            mountPath: /etc/istio/proxy
+      volumes:
+      - name: istio-ca-root-cert
+        configMap:
+          name: higress-ca-root-cert
+      - name: config
+        configMap:
+          name: higress-config
+      - name: istio-data
+        emptyDir: {}
+      - name: proxy-socket
+        emptyDir: {}
+      - name: podinfo
+        downwardAPI:
+          defaultMode: 420
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.labels
+            path: labels
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.annotations
+            path: annotations
+          - path: cpu-request
+            resourceFieldRef:
+              containerName: higress-gateway
+              divisor: 1m
+              resource: requests.cpu
+          - path: cpu-limit
+            resourceFieldRef:
+              containerName: higress-gateway
+              divisor: 1m
+              resource: limits.cpu
+---
+# Source: higress/charts/higress-console/templates/grafana.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: higress-console-grafana
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  ingressClassName: higress
+  rules:
+    - http:
+        paths:
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: higress-console-grafana
+                port:
+                  number: 3000
+      host: "console.higress.io"
+---
+# Source: higress/charts/higress-console/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: higress-console
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  ingressClassName: higress
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: higress-console
+                port:
+                  number: 8080
+      host: "console.higress.io"
+---
+# Source: higress/charts/higress-console/templates/prometheus.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: higress-console-prometheus
+  namespace: higress-system
+  labels:
+    helm.sh/chart: higress-console-1.0.1
+    app.kubernetes.io/name: higress-console
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  ingressClassName: higress
+  rules:
+    - http:
+        paths:
+          - path: /prometheus
+            pathType: Prefix
+            backend:
+              service:
+                name: higress-console-prometheus
+                port:
+                  number: 9090
+      host: "console.higress.io"

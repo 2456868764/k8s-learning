@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: higress-config
+  namespace: higress-system
+data:
+  higress: |-
+    tracing:
+      sampling: 100
+      enable: false
+      timeout: 800
+      skywalking:
+       service: skywalking-oap-server.op-system.svc.cluster.local
+       port: 11800
+    gzip:
+      enable: true
+      minContentLength: 1024
+      contentType:
+        - text/html
+        - application/json
+        - text/css
+        - application/javascript
+      disableOnEtagHeader: true
+      memoryLevel: 5
+      windowBits: 12
+      chunkSize: 4096
+      compressionLevel: BEST_COMPRESSION
+      compressionStrategy: DEFAULT_STRATEGY
+    

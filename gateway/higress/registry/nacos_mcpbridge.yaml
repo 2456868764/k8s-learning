@@ -1,0 +1,34 @@
+apiVersion: networking.higress.io/v1
+kind: McpBridge
+metadata:
+  name: default
+  namespace: higress-system
+spec:
+  registries:
+    # 定义一个名为 “production” 的服务来源
+    - name: consuldemo
+      # 注册中心类型是 Nacos 2.x，支持 gRPC 协议
+      type: consul
+      # 注册中心的访问地址，可以是域名或者IP
+      domain: 127.0.0.1
+      # 注册中心的访问端口，Nacos 默认都是 8848
+      port: 8500
+      # consul Datacenter
+      consulDatacenter: dc1
+      consulServiceTag: higress
+      consulRefreshInterval: 15
+      authSecretName: higress-consul-auth
+    - name: nacos2
+      # 注册中心类型是 Nacos 2.x，支持 gRPC 协议
+      type: nacos2
+      # 注册中心的访问地址，可以是域名或者IP
+      domain: 127.0.0.1
+      # 注册中心的访问端口，Nacos 默认都是 8848
+      port: 8848
+      # consul Datacenter
+      nacosNamespaceId: cf8ae383-c99d-4b1d-ad57-008257e87308
+      # Nacos 服务分组
+      nacosGroups:
+        - DEFAULT_GROUP
+      authSecretName: higress-nacos-auth
+

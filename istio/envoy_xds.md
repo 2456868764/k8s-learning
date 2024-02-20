@@ -322,3 +322,7 @@ curl http://127.0.0.1:8080/hostname
 ```
 
 
+# Reference
+- [xDS 协议解析](https://www.cnbugs.com/post-4253.html)
+
+
